@@ -1,4 +1,4 @@
-import { getUnitsInPairWith, getMustUnusedUnit, getClosestByRate } from './helpers';
+import { getUnitsInPairWith, getMustUnusedUnit, getClosestByRate, getPoolUnits, computeRate } from './helpers';
 import {Pool} from './models/Pool';
 import {Unit} from './models/Unit';
 
@@ -24,4 +24,17 @@ export function generatePool(): Pool{
   const rival = getClosestByRate(restUnits, mostUnusedUnit);
 
   return Pool.insert([mostUnusedUnit.id, rival.id]);
+}
+
+export function skipPool(poolId: u32): void{
+  Pool.skip(poolId);
+  const poolUnits = getPoolUnits(poolId);
+  computeRate(poolUnits, -1);
+}
+
+export function vote(poolId: u32, optionId: u32): void{
+  Pool.vote(poolId, optionId);
+  const poolUnits = getPoolUnits(poolId);
+  const index:i8 = poolUnits[0].id == optionId ? 0 : 1;
+  computeRate(poolUnits, index);
 }

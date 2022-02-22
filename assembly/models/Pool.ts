@@ -9,9 +9,10 @@ export class Pool{
   options: u32[];
   owner: AccountId;
   vote: u32;
+  skip:boolean = false;
   constructor(options: u32[]){
-    if(options.length < 2){
-      throw new Error("should be at least 2 options")
+    if(options.length != 2){
+      throw new Error("Only 2 options allowed")
     }
     this.owner = context.sender;
     this.id = math.hash32<string>(`${this.owner}-${options[0].toString()}:${options[1].toString()}`);
@@ -68,8 +69,18 @@ export class Pool{
     }
     return result;
   }
-  static vote(optionId: u32): void{
-    
+  static vote(poolId:u32, winnerOptionId: u32): void{
+    const pool =  Pool.getSome(poolId);
+    if(!pool.options.includes(winnerOptionId)){
+      throw new Error("Wrong option");
+    }
+    pool.vote = winnerOptionId;
+    POOLS.set(pool.id, pool);
+  }
+  static skip(poolId:u32):void{
+    const pool = Pool.getSome(poolId);
+    pool.skip = true;
+    POOLS.set(pool.id, pool);
   }
   static getUserUnvotedPool(): Pool | null{
     let unvotedPool: Pool | null = null;

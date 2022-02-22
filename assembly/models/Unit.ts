@@ -7,14 +7,15 @@ export class Unit{
   id: u32;
   url: string;  
   owner: string;
-  rate: u32; //TODO: create Rate model?
-  constructor(url: string, owner: string, initialRate:u32 = 100){
+  rate: f64; //TODO: create Rate model?
+  constructor(url: string, owner: string, initialRate:f64 = 100){
     this.id = math.hash32<string>(url);
     if(Unit.get(this.id)){
       throw "Unit with this url already exist";
     }
     this.url = url;
     this.owner = owner;
+    this.rate = initialRate;
   }
   static add(url: string, owner: string):Unit{
     const unit = new Unit(url, owner);
@@ -41,7 +42,7 @@ export class Unit{
     }
     return filteredUnits;
   }
-  static setRate(id: u32, rate: u32):void{
+  static setRate(id: u32, rate: f64):void{
     const unit = Unit.getSome(id);
     unit.rate = rate;
     UNITS.set(unit.id, unit);
