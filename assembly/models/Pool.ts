@@ -87,7 +87,7 @@ export class Pool{
     const pools = Pool.all();
     for (let i = 0; i < pools.length; i++) {
       const pool = pools[i];
-      if(pool.owner == context.sender && !pool.vote){
+      if(pool.owner == context.sender && !pool.vote && !pool.skip){
         unvotedPool = pool;
         break;
       }
