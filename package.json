@@ -8,7 +8,7 @@
     "dev": "npm run build && npm run deploy",
     "deploy:prod": "near deploy --accountId vote-contract.artyom_fn.testnet --wasmFile build/release/contract.wasm",
     "prod": "npm run build && npm run deploy:prod",
-    "test": "asp",
+    "test": "asp --verbose",
     "validate": "asc assembly/index.ts --noEmit --measure  --sourceMap "
   },
   "keywords": [],

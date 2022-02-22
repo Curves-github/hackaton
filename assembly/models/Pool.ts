@@ -25,7 +25,9 @@ export class Pool{
     this.options = options;
   }
   static insert(options: u32[]): Pool{
-    return new Pool(options);
+    const pool = new Pool(options);
+    POOLS.set(pool.id, pool);
+    return pool;
   }
   static get(id: u32): Pool | null{
     return POOLS.get(id)
@@ -35,6 +37,9 @@ export class Pool{
   }
   static all():Pool[]{
     return POOLS.values();
+  }
+  static list(offset: u32, limit: u32):Pool[]{
+    return POOLS.values(offset, offset + limit);
   }
   static getPoolsByUser(user: AccountId, offset:u32 = 0, limit: u32 = 10): Pool[]{
     const pools = Pool.all();
