@@ -9,9 +9,7 @@
     "deploy:prod": "near deploy --accountId vote-contract.artyom_fn.testnet --wasmFile build/release/contract.wasm",
     "prod": "npm run build && npm run deploy:prod",
     "test": "asp",
-    "asbuild:untouched": "asc assembly/index.ts --target debug",
-    "asbuild:optimized": "asc assembly/index.ts --target release",
-    "asbuild": "npm run asbuild:untouched && npm run asbuild:optimized"
+    "validate": "asc assembly/index.ts --noEmit --measure  --sourceMap "
   },
   "keywords": [],
   "author": "",
@@ -22,6 +20,7 @@
     "assemblyscript": "^0.19.23",
     "near-cli": "^3.2.0",
     "near-sdk-as": "^3.2.3",
+    "source-map-support": "^0.5.21",
     "typescript": "^4.5.5"
   },
   "devDependencies": {

@@ -16,19 +16,22 @@ export class Unit{
     this.url = url;
     this.owner = owner;
   }
-  static add(url: string, owner: string){
+  static add(url: string, owner: string):Unit{
     const unit = new Unit(url, owner);
     UNITS.set(unit.id, unit);
     return unit;
   }
-  static get(id: u32){
+  static get(id: u32):Unit | null{
     return UNITS.get(id);
   }
-  static getSome(id: u32){
+  static getSome(id: u32):Unit{
     return UNITS.getSome(id);
   }
-  static getByOwner(owner: string){
-    const filteredUnits = [];
+  static all():Unit[]{
+    return UNITS.values();
+  }
+  static getByOwner(owner: string): Unit[]{
+    const filteredUnits:Unit[] = [];
     const values = UNITS.values();
     for (let i = 0; i < values.length; i++) {
        const unit = values[i];
@@ -38,7 +41,7 @@ export class Unit{
     }
     return filteredUnits;
   }
-  static setRate(id: u32, rate: u32){
+  static setRate(id: u32, rate: u32):void{
     const unit = Unit.getSome(id);
     unit.rate = rate;
     UNITS.set(unit.id, unit);
