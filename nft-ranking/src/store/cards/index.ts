@@ -19,16 +19,21 @@ class CardsStore {
 
   async init() {
     const cards = await fetch("/nft.json").then(a => a.json())
-    this.setCards(cards.map((card: any) => ({
-      id: card.id,
-      rate: 100,
-      participations: 0,
-      src: `/images/${card.id}.png`
-    })))
+    this.setCards(cards.map((card: any) => {
+      const splited = card.image_url.split("/")
+      const ext = splited[splited.length-1].split(".")
+      return {
+        id: card.id,
+        rate: 100,
+        participations: 0,
+        src: `/images/${card.id}.${ext.length === 1? "png": ext[ext.length-1]}`
+      }
+    }))
     this.getTwoCards()
   }
 
   setCards(cards: Card[]) {
+    console.log(cards)
     this.cards.replace(cards)
   }
 

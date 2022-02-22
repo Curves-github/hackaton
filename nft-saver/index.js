@@ -1,13 +1,23 @@
 const axios = require("axios").default;
-const fs = require("fs")
+const fs = require("fs");
+const path = require("path");
 
 const init = async () => {
 
-  const resp = await axios.get("https://testnets-api.opensea.io/api/v1/assets?order_direction=desc&offset=0&limit=50")
-  const resp2 = await axios.get("https://testnets-api.opensea.io/api/v1/assets?order_direction=desc&offset=50&limit=50")
-  const resp3 = await axios.get("https://testnets-api.opensea.io/api/v1/assets?order_direction=desc&offset=100&limit=50")
+  // const assets = JSON.parse(await fs.promises.readFile("./assets.json"))
+  const assets = []
 
-  const assets = [ ...resp.data.assets, resp2.data.assets, resp3.data.assets ]
+  for (let i = 0; i < 50; i++) {
+    try {
+      const resp = await axios.get(`https://testnets-api.opensea.io/api/v1/assets?order_direction=desc&offset=${i*50}&limit=50`)
+      assets.push(...resp.data.assets)
+      console.log(`Assets ${i*50} - ${(i+1)*50-1} downloaded`)
+
+      await fs.promises.writeFile("./assets.json", JSON.stringify(assets))
+    } catch(e) {
+      break;
+    }
+  }
 
   const images = new Set()
   const arr = []
@@ -25,11 +35,22 @@ const init = async () => {
   // const arr = JSON.parse(file)
 
   for (let file of arr) {
-    const resp = await axios.get(file.image_url, {
-      responseType: "arraybuffer"
-    })
-    await fs.promises.writeFile(`./images/${file.id}.png`, resp.data)
-    console.log(`Image ${file.id}.png downloaded. (${resp.data.length} bytes)`)
+    const ext = path.extname(file.image_url) || ".png"
+    try {
+      if (fs.existsSync(`./images/${file.id}${ext}`)) {
+        console.log(`Image ${file.id}${ext} passed`)
+        continue
+      }
+
+      const resp = await axios.get(file.image_url, {
+        responseType: "arraybuffer"
+      })
+
+      await fs.promises.writeFile(`./images/${file.id}${ext}`, resp.data)
+      console.log(`Image ${file.id}${ext} downloaded. (${resp.data.length} bytes)`)
+    }catch(e){
+      console.log(`Image ${file.id}${ext} NOT downloaded.`)
+    }
   }
 
 }
