@@ -17,8 +17,8 @@ describe('helpers',()=>{
       Pool.insert([units[1].id, units[2].id]),
       Pool.insert([units[1].id, units[3].id]),
     ]
-    Pool.skip(pools[0].id);
-    Pool.vote(pools[1].id, pools[1].options[0]);
+    Pool.skipPool(pools[0].id);
+    Pool.votePool(pools[1].id, pools[1].options[0]);
 
     const resultIds = getComplitedPoolsWithUnit(units[0].id).map<u32>(pool=>pool.id);
 
@@ -40,10 +40,10 @@ describe('helpers',()=>{
       Pool.insert([units[1].id, units[2].id]),
       Pool.insert([units[1].id, units[3].id]),
     ]
-    Pool.skip(pools[0].id);
-    Pool.skip(pools[1].id);
-    Pool.skip(pools[2].id);
-    Pool.vote(pools[3].id, pools[3].options[0]);
+    Pool.skipPool(pools[0].id);
+    Pool.skipPool(pools[1].id);
+    Pool.skipPool(pools[2].id);
+    Pool.votePool(pools[3].id, pools[3].options[0]);
     expect(getMustUnusedUnit(Unit.all())).toStrictEqual(units[3]);
   })
  

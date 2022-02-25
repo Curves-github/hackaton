@@ -47,13 +47,13 @@ export function getPoolWithUnits(): PoolWithUnits{
 
 
 export function skipPool(poolId: u32): void{
-  Pool.skip(poolId);
+  Pool.skipPool(poolId);
   const poolUnits = getPoolUnits(poolId);
   computeRate(poolUnits, -1);
 }
 
-export function vote(poolId: u32, optionId: u32): void{
-  Pool.vote(poolId, optionId);
+export function votePool(poolId: u32, optionId: u32): void{
+  Pool.votePool(poolId, optionId);
   const poolUnits = getPoolUnits(poolId);
   const index:i8 = poolUnits[0].id == optionId ? 0 : 1;
   computeRate(poolUnits, index);

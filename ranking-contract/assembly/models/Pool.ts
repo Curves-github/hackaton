@@ -78,7 +78,7 @@ export class Pool{
     }
     return result;
   }
-  static vote(poolId:u32, winnerOptionId: u32): void{
+  static votePool(poolId:u32, winnerOptionId: u32): void{
     const pool =  Pool.getSome(poolId);
     if(!pool.options.includes(winnerOptionId)){
       throw new Error("Wrong option");
@@ -86,7 +86,7 @@ export class Pool{
     pool.vote = winnerOptionId;
     POOLS.set(pool.id, pool);
   }
-  static skip(poolId:u32):void{
+  static skipPool(poolId:u32):void{
     const pool = Pool.getSome(poolId);
     pool.skip = true;
     POOLS.set(pool.id, pool);

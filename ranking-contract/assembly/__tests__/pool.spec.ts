@@ -83,37 +83,37 @@ describe("Pool model", () => {
   });
   it("vote - should set mark in vote field", ()=>{
     let pool = Pool.insert([1,2]);
-    Pool.vote(pool.id, 1);
+    Pool.votePool(pool.id, 1);
     pool = Pool.getSome(pool.id);
     expect(pool.vote).toBe(1);
   })
   it("vote - shoud throw error if option not found", ()=>{
     expect(()=>{
       const pool = Pool.insert([3,4]);
-      Pool.vote(pool.id, 1);
+      Pool.votePool(pool.id, 1);
     }).toThrow()
   })
   it("vote - should throw error if pool not found", ()=>{
     expect(()=>{
-      Pool.vote(1, 1);
+      Pool.votePool(1, 1);
     }).toThrow()
   })
-  it("skip - should set mark in skip field", ()=>{
+  it("skipPool - should set mark in skip field", ()=>{
     let pool = Pool.insert([1,2]);
-    Pool.skip(pool.id);
+    Pool.skipPool(pool.id);
     pool = Pool.getSome(pool.id);
     expect(pool.skip).toBeTruthy();
   })
-  it('skip - should trhow error if pool not found', ()=>{
+  it('skipPool - should trhow error if pool not found', ()=>{
     expect(()=>{
-      Pool.skip(1);
+      Pool.skipPool(1);
     }).toThrow();
   })
   it("getPoolsWithOptionWinner - should return pools with option winner",()=>{
     const winnerOption = 1;
     let pools = [Pool.insert([winnerOption,2]), Pool.insert([winnerOption,3]),Pool.insert([3,4])];
-    Pool.vote(pools[0].id, winnerOption)
-    Pool.vote(pools[1].id, winnerOption)
+    Pool.votePool(pools[0].id, winnerOption)
+    Pool.votePool(pools[1].id, winnerOption)
     pools = Pool.all();
     const poolsWithWinner = Pool.getPoolsWithOptionWinner(1);
     expect(poolsWithWinner[0]).toStrictEqual(pools[0])
@@ -126,8 +126,8 @@ describe("Pool model", () => {
     VMContext.setSigner_account_id("alice");
     const userPools = [Pool.insert([1,2]), Pool.insert([1,3]), Pool.insert([1,4])];
 
-    Pool.vote(userPools[0].id, 1);
-    Pool.skip(userPools[1].id);
+    Pool.votePool(userPools[0].id, 1);
+    Pool.skipPool(userPools[1].id);
     expect(Pool.getUserUncompletedPool()).toStrictEqual(userPools[2]);
   })
 })

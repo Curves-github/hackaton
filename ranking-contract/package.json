@@ -5,11 +5,13 @@
   "main": "index.js",
   "scripts": {
     "build": "asb",
-    "dev": "npm run build && npm run deploy",
+    "dev": "yarn build && yarn deploy:dev",
+    "prod": "yarn build && yarn deploy:prod",
+    "deploy:dev": "near dev-deploy",
     "deploy:prod": "near deploy --accountId vote-contract.artyom_fn.testnet --wasmFile build/release/contract.wasm",
-    "prod": "npm run build && npm run deploy:prod",
     "test": "asp --verbose",
-    "validate": "asc assembly/index.ts --noEmit --measure  --sourceMap "
+    "test:ci": "asp",
+    "validate": "asb -- --noEmit --measure  --sourceMap"
   },
   "keywords": [],
   "author": "",
