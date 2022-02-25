@@ -1,20 +1,23 @@
-import { getUnitsInPairWith, getMustUnusedUnit, getClosestByRate, getPoolUnits, computeRate } from './helpers';
+import { getUnitOpponents, getMustUnusedUnit, getClosestByRate, getPoolUnits, computeRate } from './helpers';
 import {Pool} from './models/Pool';
 import {Unit, UnitConstructor} from './models/Unit';
+import { context } from 'near-sdk-as';
+
+const ADMINS_ACCOUNTS = ['units_delivery.nft_votes.curves.testnet']
 
 class PoolWithUnits{
   pool:Pool;
   units: Unit[]
 }
 
-function generatePool(): Pool{
+export function _generatePool(): Pool{
   const unvotedPool = Pool.getUserUncompletedPool();
   if(unvotedPool){
     return unvotedPool;
   }
   const units = Unit.all();
   const mostUnusedUnit = getMustUnusedUnit(units);
-  const forbiddenUnitsIds = getUnitsInPairWith(mostUnusedUnit);
+  const forbiddenUnitsIds = getUnitOpponents(mostUnusedUnit.id, context.sender);
 
   const restUnits: Unit[] = [];
   for (let i = 0; i < units.length; i++) {
@@ -31,7 +34,7 @@ function generatePool(): Pool{
 }
 
 export function getPoolWithUnits(): PoolWithUnits{
-  const pool = generatePool();
+  const pool = _generatePool();
   const units:Unit[] = [];
   for (let i = 0; i < pool.options.length; i++) {
     const unitId = pool.options[i];
@@ -44,7 +47,6 @@ export function getPoolWithUnits(): PoolWithUnits{
     units
   }
 }
-
 
 export function skipPool(poolId: u32): void{
   Pool.skipPool(poolId);
@@ -60,6 +62,9 @@ export function votePool(poolId: u32, optionId: u32): void{
 }
 
 export function addUnits(unitsProps: UnitConstructor[]): Unit[]{
+  if(!ADMINS_ACCOUNTS.includes(context.sender)){
+    throw new Error("Access denied")
+  }
   const units:Unit[] = [];
   for (let i = 0; i < unitsProps.length; i++) {
     const unitProps = unitsProps[i];

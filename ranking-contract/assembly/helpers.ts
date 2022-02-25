@@ -1,5 +1,6 @@
 import { Pool } from "./models/Pool";
 import { Unit } from "./models/Unit";
+import { AccountId } from "./utils";
 
 class UnitUses{
   unit: Unit;
@@ -43,15 +44,20 @@ export function getClosestByRate(units:Unit[], target: Unit):Unit{
   return closest;
 }
 
-export function getUnitsInPairWith(target:Unit): u32[]{
-  const siblings = Pool.getPoolsByOption(target.id).map<u32[]>(pool=>pool.options).flat();
-  const uniqueUnits:u32[] = [];
-  for (let i = 0; i < siblings.length; i++) {
-    if(siblings[i] != target.id){
-      uniqueUnits.push(siblings[i]);
+export function getUnitOpponents(target:u32, poolOwner?: AccountId): u32[]{
+  const poolsWithOption = Pool.getPoolsByOption(target)
+  let opponents = new Set<u32>();
+  
+  for (let i = 0; i < poolsWithOption.length; i++) {
+    const pool = poolsWithOption[i];
+    if(poolOwner && poolOwner != pool.owner) continue;
+
+    for (let j = 0; j < pool.options.length; j++) {
+      opponents.add(pool.options[j])
     }
   }
-  return uniqueUnits;
+  opponents.delete(target);
+  return opponents.values();
 }
 
 export function getPoolUnits(poolId: u32): Unit[]{

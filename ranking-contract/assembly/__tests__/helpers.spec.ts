@@ -1,6 +1,7 @@
 import {Unit} from '../models/Unit';
 import {Pool} from '../models/Pool';
-import {getComplitedPoolsWithUnit, getMustUnusedUnit, getClosestByRate, getUnitsInPairWith, getPoolUnits, computeRate} from '../helpers';
+import {getComplitedPoolsWithUnit, getMustUnusedUnit, getClosestByRate, getUnitOpponents, getPoolUnits, computeRate} from '../helpers';
+import { VMContext } from "near-sdk-as";
 
 describe('helpers',()=>{
   it("getComplitedPoolsWithUnit - should return completed pools with unit", ()=>{
@@ -62,20 +63,33 @@ describe('helpers',()=>{
     const expected = Unit.getSome(units[2].id);
     expect(getClosestByRate(Unit.all(), target)).toStrictEqual(expected)
   })
-  it('getUnitsInPairWith - should return pair ids for specific unit', ()=>{
+  it('getUnitOpponents - should return pair ids for specific unit', ()=>{
     const units = [
       Unit.add('url', 'bob'),
       Unit.add('url2', 'bob'),
       Unit.add('url3', 'alice'),
       Unit.add('url4', 'alice'),
     ]
+    VMContext.setSigner_account_id("bob");
     Pool.insert([units[0].id, units[1].id]);
     Pool.insert([units[0].id, units[2].id]);
     Pool.insert([units[1].id, units[2].id]);
     Pool.insert([units[1].id, units[3].id]);
+    VMContext.setSigner_account_id("alice");
+    Pool.insert([units[0].id, units[1].id]);
+    Pool.insert([units[0].id, units[2].id]);
+    Pool.insert([units[1].id, units[2].id]);
+    Pool.insert([units[1].id, units[3].id]);
+    
 
-    expect(getUnitsInPairWith(units[0])).toInclude(units[1].id);
-    expect(getUnitsInPairWith(units[0])).toInclude(units[2].id);
+    expect(getUnitOpponents(units[0].id, 'bob').length).toBe(2);
+    expect(getUnitOpponents(units[0].id, 'bob')).toInclude(units[1].id);
+    expect(getUnitOpponents(units[0].id, 'bob')).toInclude(units[2].id);
+
+    expect(getUnitOpponents(units[1].id, 'alice').length).toBe(3);
+    expect(getUnitOpponents(units[1].id, 'alice')).toInclude(units[0].id);
+    expect(getUnitOpponents(units[1].id, 'alice')).toInclude(units[2].id);
+    expect(getUnitOpponents(units[1].id, 'alice')).toInclude(units[3].id);
   })
   it("getPoolUnits - should return Units for specific pool", ()=>{
     const units = [
