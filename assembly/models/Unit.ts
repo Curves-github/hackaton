@@ -2,6 +2,11 @@ import { PersistentUnorderedMap, math } from "near-sdk-as";
 
 export const UNITS = new PersistentUnorderedMap<u32, Unit>("u");
 
+export class UnitConstructor{
+  url: string;
+  owner: string;
+}
+
 @nearBindgen
 export class Unit{
   id: u32;

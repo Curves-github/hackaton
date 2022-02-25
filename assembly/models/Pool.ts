@@ -24,6 +24,10 @@ export class Pool{
     }
     this.options = options;
   }
+  get completed():boolean{
+    return !!this.vote || this.skip;
+  }
+  
   static insert(options: u32[]): Pool{
     const pool = new Pool(options);
     POOLS.set(pool.id, pool);
@@ -87,16 +91,17 @@ export class Pool{
     pool.skip = true;
     POOLS.set(pool.id, pool);
   }
-  static getUserUnvotedPool(): Pool | null{
+  static getUserUncompletedPool(): Pool | null{
     let unvotedPool: Pool | null = null;
     const pools = Pool.all();
     for (let i = 0; i < pools.length; i++) {
       const pool = pools[i];
-      if(pool.owner == context.sender && !pool.vote && !pool.skip){
+      if(pool.owner == context.sender && !pool.completed){
         unvotedPool = pool;
         break;
       }
     }
     return unvotedPool
   }
+  
 }

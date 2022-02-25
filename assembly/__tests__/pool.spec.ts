@@ -24,7 +24,7 @@ describe("Pool model", () => {
     const pool = Pool.insert([1,2]);
     expect(Pool.get(pool.id)).toStrictEqual(pool);
   });
-  it("get - should return undefined if pool not found", () => {
+  it("get - should return null if pool not found", () => {
     expect(Pool.get(1)).toBe(null);
   });
   it("getSome - should return pool instance if exist", () => {
@@ -120,7 +120,7 @@ describe("Pool model", () => {
     expect(poolsWithWinner[1]).toStrictEqual(pools[1])
     
   });
-  it("getUserUnvotedPool - should return unvoted pools created current user, and skip pools with skip flag",()=>{
+  it("getUserUncompletedPool - should return unvoted pools created current user, and skip pools with skip flag",()=>{
     Pool.insert([1,2]);
     Pool.insert([1,3]);
     VMContext.setSigner_account_id("alice");
@@ -128,6 +128,6 @@ describe("Pool model", () => {
 
     Pool.vote(userPools[0].id, 1);
     Pool.skip(userPools[1].id);
-    expect(Pool.getUserUnvotedPool()).toStrictEqual(userPools[2]);
+    expect(Pool.getUserUncompletedPool()).toStrictEqual(userPools[2]);
   })
 })

@@ -6,20 +6,37 @@ class UnitUses{
   uses: f64;
 }
 
-export function getMustUnusedUnit(units:Unit[]):Unit{
-  const unitUses: UnitUses = {unit: units[0], uses:0}
-  return units.reduce<UnitUses>((minUnit, unit) => {
-    const unitPoolsCount = Pool.getPoolsWithOptionWinner(unit.id).length;
-    return unitPoolsCount < minUnit.uses ? {unit: unit, uses: unitPoolsCount} : minUnit;
-  }, unitUses).unit;
+export function getComplitedPoolsWithUnit(unitId: u32): Pool[]{
+  const poolsWithUnit = Pool.getPoolsByOption(unitId);
+  const completedPools:Pool[] = [];
+  for (let i = 0; i < poolsWithUnit.length; i++) {
+    if(poolsWithUnit[i].completed){
+      completedPools.push(poolsWithUnit[i]);
+    }
+  }
+  return completedPools;
 }
 
-export function getClosestByRate(units:Unit[],target: Unit):Unit{
+export function getMustUnusedUnit(units:Unit[]):Unit{
+  const complitedPoolsCount = (id: u32): u32=> getComplitedPoolsWithUnit(id).length;
+
+  const startReducerValue: UnitUses = {
+    unit: units[0], 
+    uses: complitedPoolsCount(units[0].id),
+  }
+  return units.reduce<UnitUses>((minUnit, unit) => {
+    const completedPoolsCount = complitedPoolsCount(unit.id);
+    return completedPoolsCount < minUnit.uses ? {unit: unit, uses: completedPoolsCount} : minUnit;
+  }, startReducerValue).unit;
+}
+
+export function getClosestByRate(units:Unit[], target: Unit):Unit{
   const rateDistance = (a:Unit, b:Unit):f64 => Math.abs(a.rate - b.rate);
   let closest = units[0];
-  for (let i = 0; i < units.length; i++) {
+  for (let i = 1; i < units.length; i++) {
     const unit = units[i];
-    if(rateDistance(target, unit) < rateDistance(target, closest)){
+    if(unit.id == target.id) continue;
+    if(closest.id == target.id || rateDistance(target, unit) < rateDistance(target, closest)){
       closest = unit;
     }
   }

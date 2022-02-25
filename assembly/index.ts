@@ -1,10 +1,14 @@
 import { getUnitsInPairWith, getMustUnusedUnit, getClosestByRate, getPoolUnits, computeRate } from './helpers';
 import {Pool} from './models/Pool';
-import {Unit} from './models/Unit';
+import {Unit, UnitConstructor} from './models/Unit';
 
+class PoolWithUnits{
+  pool:Pool;
+  units: Unit[]
+}
 
-export function generatePool(): Pool{
-  const unvotedPool = Pool.getUserUnvotedPool();
+function generatePool(): Pool{
+  const unvotedPool = Pool.getUserUncompletedPool();
   if(unvotedPool){
     return unvotedPool;
   }
@@ -26,6 +30,22 @@ export function generatePool(): Pool{
   return Pool.insert([mostUnusedUnit.id, rival.id]);
 }
 
+export function getPoolWithUnits(): PoolWithUnits{
+  const pool = generatePool();
+  const units:Unit[] = [];
+  for (let i = 0; i < pool.options.length; i++) {
+    const unitId = pool.options[i];
+    const unit = Unit.getSome(unitId);
+    units.push(unit);
+  }
+
+  return {
+    pool,
+    units
+  }
+}
+
+
 export function skipPool(poolId: u32): void{
   Pool.skip(poolId);
   const poolUnits = getPoolUnits(poolId);
@@ -37,4 +57,14 @@ export function vote(poolId: u32, optionId: u32): void{
   const poolUnits = getPoolUnits(poolId);
   const index:i8 = poolUnits[0].id == optionId ? 0 : 1;
   computeRate(poolUnits, index);
+}
+
+export function addUnits(unitsProps: UnitConstructor[]): Unit[]{
+  const units:Unit[] = [];
+  for (let i = 0; i < unitsProps.length; i++) {
+    const unitProps = unitsProps[i];
+    const unit = Unit.add(unitProps.url,unitProps.owner);
+    units.push(unit);
+  }
+  return units;
 }
