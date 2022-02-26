@@ -5,11 +5,10 @@ import {
   getPoolUnits,
   computeRate,
 } from "./helpers";
+import { ADMINS_ACCOUNTS } from "./roles";
 import { Pool } from "./models/Pool";
 import { Unit, UnitConstructor } from "./models/Unit";
 import { context } from "near-sdk-as";
-
-const ADMINS_ACCOUNTS = ["units_delivery.nft_votes.curves.testnet"];
 
 class PoolWithUnits {
   pool: Pool;

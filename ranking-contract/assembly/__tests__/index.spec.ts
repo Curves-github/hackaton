@@ -1,7 +1,14 @@
-import { Pool } from "../models/Pool";
 import { Unit } from "../models/Unit";
-import { _generatePool } from "../index";
-import { VMContext } from "near-sdk-as";
+import { Pool } from "../models/Pool";
+import {
+  _generatePool,
+  getPoolWithUnits,
+  skipPool,
+  votePool,
+  addUnits,
+} from "../index";
+import { ADMINS_ACCOUNTS } from "../roles";
+import { VMContext, VM } from "near-sdk-as";
 
 describe("contract methods", () => {
   it("generatePool - should return latest unvoted pool if it exists", () => {
@@ -50,6 +57,60 @@ describe("contract methods", () => {
 
     expect(() => {
       _generatePool();
+    }).toThrow();
+  });
+  it("getPoolWithUnits - should return pool and units", () => {
+    Unit.add("1", "1");
+    Unit.add("2", "2");
+    Unit.add("3", "3");
+    expect(() => {
+      getPoolWithUnits();
+    }).not.toThrow();
+  });
+  it("skipPool - should set flag in pool and decrease rate for booth units", () => {
+    let unit1 = Unit.add("url1", "bob");
+    let unit2 = Unit.add("url2", "bob");
+    const initalRate1 = unit1.rate;
+    const initalRate2 = unit2.rate;
+    let pool = Pool.insert([unit1.id, unit2.id]);
+    skipPool(pool.id);
+
+    unit1 = Unit.getSome(unit1.id);
+    unit2 = Unit.getSome(unit2.id);
+    pool = Pool.getSome(pool.id);
+    expect(unit1.rate).toBeLessThanOrEqual(initalRate1);
+    expect(unit2.rate).toBeLessThanOrEqual(initalRate2);
+    expect(pool.skip).toBeTruthy();
+  });
+  it("votePool - should add vote to pool and increase rate for winner unit and decrease for loser", () => {
+    let winner = Unit.add("url1", "bob");
+    let loser = Unit.add("url2", "bob");
+    const initialWinnerRate = winner.rate;
+    const initialLoserRate = loser.rate;
+    let pool = Pool.insert([winner.id, loser.id]);
+    votePool(pool.id, winner.id);
+    winner = Unit.getSome(winner.id);
+    loser = Unit.getSome(loser.id);
+    pool = Pool.getSome(pool.id);
+
+    expect(pool.vote).toBe(winner.id);
+    expect(winner.rate).toBeGreaterThan(initialWinnerRate);
+    expect(loser.rate).toBeLessThan(initialLoserRate);
+  });
+  it("addUnits - admin can store units", () => {
+    VMContext.setSigner_account_id(ADMINS_ACCOUNTS[0]);
+    const units = addUnits([
+      { url: "1", owner: "1" },
+      { url: "2", owner: "2" },
+    ]);
+    expect(Unit.all()).toStrictEqual(units);
+  });
+  it("addUnits - should throw error if account with admin role", () => {
+    expect(() => {
+      const units = addUnits([
+        { url: "1", owner: "1" },
+        { url: "2", owner: "2" },
+      ]);
     }).toThrow();
   });
 });
