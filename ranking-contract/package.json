@@ -1,0 +1,31 @@
+{
+  "name": "ranking-contract",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "asb",
+    "dev": "yarn build && yarn deploy:dev",
+    "prod": "yarn build && yarn deploy:prod",
+    "deploy:dev": "near dev-deploy",
+    "deploy:prod": "near deploy --accountId vote-contract.artyom_fn.testnet --wasmFile build/release/contract.wasm",
+    "test": "asp --verbose",
+    "test:ci": "asp",
+    "validate": "asb -- --noEmit --measure  --sourceMap"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@assemblyscript/loader": "^0.19.23",
+    "asbuild": "^0.2.0",
+    "assemblyscript": "^0.19.23",
+    "near-cli": "^3.2.0",
+    "near-sdk-as": "^3.2.3",
+    "source-map-support": "^0.5.21",
+    "typescript": "^4.5.5"
+  },
+  "devDependencies": {
+    "assemblyscript": "^0.19.23"
+  }
+}
