@@ -3,47 +3,46 @@ import { VMContext } from "near-sdk-as";
 
 describe("Pool model", () => {
   it("Insert - should add item to pools storage", () => {
-    const pool = Pool.insert([1,2]);
+    const pool = Pool.insert([1, 2]);
     expect(POOLS.values()[0]).toStrictEqual(pool);
   });
   it("insert - should throw error if user already create pool with same name", () => {
-    Pool.insert([1,2]);
+    Pool.insert([1, 2]);
     expect(() => {
-      Pool.insert([1,2]);
+      Pool.insert([1, 2]);
     }).toThrow();
   });
-  it("insert - diffrenet users can create pools with same options", ()=>{
-    expect(()=>{
-      Pool.insert([1,2]);
+  it("insert - diffrenet users can create pools with same options", () => {
+    expect(() => {
+      Pool.insert([1, 2]);
       VMContext.setSigner_account_id("alice");
-      Pool.insert([1,2]);
-    }).not.toThrow()
-    
-  })
+      Pool.insert([1, 2]);
+    }).not.toThrow();
+  });
   it("get - should return pool instance if exist", () => {
-    const pool = Pool.insert([1,2]);
+    const pool = Pool.insert([1, 2]);
     expect(Pool.get(pool.id)).toStrictEqual(pool);
   });
   it("get - should return null if pool not found", () => {
     expect(Pool.get(1)).toBe(null);
   });
   it("getSome - should return pool instance if exist", () => {
-    const pool = Pool.insert([1,2]);
+    const pool = Pool.insert([1, 2]);
     expect(Pool.getSome(pool.id)).toStrictEqual(pool);
   });
   it("getSome - should throw error if pool not found", () => {
     expect(() => Pool.getSome(1)).toThrow();
   });
-  it("all - should return all values", ()=>{
-    const createdPools = [Pool.insert([1,2]), Pool.insert([3,2])];
+  it("all - should return all values", () => {
+    const createdPools = [Pool.insert([1, 2]), Pool.insert([3, 2])];
     const storedPools = Pool.all();
-    expect(storedPools).toStrictEqual(createdPools)
-  })
+    expect(storedPools).toStrictEqual(createdPools);
+  });
   it("list - should return 'limit' of pools start's from 'offset'", () => {
     const poolsList = [
-      Pool.insert([1,2]),
-      Pool.insert([2,3]),
-      Pool.insert([4,5]),
+      Pool.insert([1, 2]),
+      Pool.insert([2, 3]),
+      Pool.insert([4, 5]),
     ];
 
     const list = Pool.list(0, 2);
@@ -52,9 +51,9 @@ describe("Pool model", () => {
   });
   it("list - should return 'limit'(or less) of pools start's from 'offset'", () => {
     const poolsList = [
-      Pool.insert([1,2]),
-      Pool.insert([2,3]),
-      Pool.insert([4,5]),
+      Pool.insert([1, 2]),
+      Pool.insert([2, 3]),
+      Pool.insert([4, 5]),
     ];
 
     let list = Pool.list(0, poolsList.length - 1);
@@ -65,69 +64,79 @@ describe("Pool model", () => {
     expect(list.length).toBe(poolsList.length);
     expect(list).toStrictEqual(poolsList);
   });
-  it("getPoolsByUser - should return only pools for requested user", ()=>{
+  it("getPoolsByUser - should return only pools for requested user", () => {
     VMContext.setSigner_account_id("bob");
-    const userPools = [Pool.insert([1,2]), Pool.insert([2,3])];
+    const userPools = [Pool.insert([1, 2]), Pool.insert([2, 3])];
 
     VMContext.setSigner_account_id("alice");
-    const otherPools = [Pool.insert([1,2]), Pool.insert([2,3])];
+    const otherPools = [Pool.insert([1, 2]), Pool.insert([2, 3])];
 
-    const storedUserPools = Pool.getPoolsByUser('bob');
+    const storedUserPools = Pool.getPoolsByUser("bob");
     expect(storedUserPools).toStrictEqual(userPools);
-  })
-  it("getPoolsByOption - should return only pools for requested option", ()=>{
+  });
+  it("getPoolsByOption - should return only pools for requested option", () => {
     const optionId = 1;
-    const optionPools = [Pool.insert([optionId,2]), Pool.insert([optionId,3])];
-    Pool.insert([3,4])
+    const optionPools = [
+      Pool.insert([optionId, 2]),
+      Pool.insert([optionId, 3]),
+    ];
+    Pool.insert([3, 4]);
     expect(Pool.getPoolsByOption(optionId)).toStrictEqual(optionPools);
   });
-  it("vote - should set mark in vote field", ()=>{
-    let pool = Pool.insert([1,2]);
+  it("vote - should set mark in vote field", () => {
+    let pool = Pool.insert([1, 2]);
     Pool.votePool(pool.id, 1);
     pool = Pool.getSome(pool.id);
     expect(pool.vote).toBe(1);
-  })
-  it("vote - shoud throw error if option not found", ()=>{
-    expect(()=>{
-      const pool = Pool.insert([3,4]);
+  });
+  it("vote - shoud throw error if option not found", () => {
+    expect(() => {
+      const pool = Pool.insert([3, 4]);
       Pool.votePool(pool.id, 1);
-    }).toThrow()
-  })
-  it("vote - should throw error if pool not found", ()=>{
-    expect(()=>{
+    }).toThrow();
+  });
+  it("vote - should throw error if pool not found", () => {
+    expect(() => {
       Pool.votePool(1, 1);
-    }).toThrow()
-  })
-  it("skipPool - should set mark in skip field", ()=>{
-    let pool = Pool.insert([1,2]);
+    }).toThrow();
+  });
+  it("skipPool - should set mark in skip field", () => {
+    let pool = Pool.insert([1, 2]);
     Pool.skipPool(pool.id);
     pool = Pool.getSome(pool.id);
     expect(pool.skip).toBeTruthy();
-  })
-  it('skipPool - should trhow error if pool not found', ()=>{
-    expect(()=>{
+  });
+  it("skipPool - should trhow error if pool not found", () => {
+    expect(() => {
       Pool.skipPool(1);
     }).toThrow();
-  })
-  it("getPoolsWithOptionWinner - should return pools with option winner",()=>{
+  });
+  it("getPoolsWithOptionWinner - should return pools with option winner", () => {
     const winnerOption = 1;
-    let pools = [Pool.insert([winnerOption,2]), Pool.insert([winnerOption,3]),Pool.insert([3,4])];
-    Pool.votePool(pools[0].id, winnerOption)
-    Pool.votePool(pools[1].id, winnerOption)
+    let pools = [
+      Pool.insert([winnerOption, 2]),
+      Pool.insert([winnerOption, 3]),
+      Pool.insert([3, 4]),
+    ];
+    Pool.votePool(pools[0].id, winnerOption);
+    Pool.votePool(pools[1].id, winnerOption);
     pools = Pool.all();
     const poolsWithWinner = Pool.getPoolsWithOptionWinner(1);
-    expect(poolsWithWinner[0]).toStrictEqual(pools[0])
-    expect(poolsWithWinner[1]).toStrictEqual(pools[1])
-    
+    expect(poolsWithWinner[0]).toStrictEqual(pools[0]);
+    expect(poolsWithWinner[1]).toStrictEqual(pools[1]);
   });
-  it("getUserUncompletedPool - should return unvoted pools created current user, and skip pools with skip flag",()=>{
-    Pool.insert([1,2]);
-    Pool.insert([1,3]);
+  it("getUserUncompletedPool - should return unvoted pools created current user, and skip pools with skip flag", () => {
+    Pool.insert([1, 2]);
+    Pool.insert([1, 3]);
     VMContext.setSigner_account_id("alice");
-    const userPools = [Pool.insert([1,2]), Pool.insert([1,3]), Pool.insert([1,4])];
+    const userPools = [
+      Pool.insert([1, 2]),
+      Pool.insert([1, 3]),
+      Pool.insert([1, 4]),
+    ];
 
     Pool.votePool(userPools[0].id, 1);
     Pool.skipPool(userPools[1].id);
     expect(Pool.getUserUncompletedPool()).toStrictEqual(userPools[2]);
-  })
-})
+  });
+});

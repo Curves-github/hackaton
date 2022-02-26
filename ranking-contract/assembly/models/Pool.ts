@@ -4,104 +4,109 @@ import { AccountId } from "../utils";
 export const POOLS = new PersistentUnorderedMap<u32, Pool>("p");
 
 @nearBindgen
-export class Pool{
+export class Pool {
   id: u32;
   options: u32[];
   owner: AccountId;
   vote: u32;
-  skip:boolean = false;
-  constructor(options: u32[]){
-    if(options.length != 2){
-      throw new Error("Only 2 options allowed")
+  skip: boolean = false;
+  constructor(options: u32[]) {
+    if (options.length != 2) {
+      throw new Error("Only 2 options allowed");
     }
     this.owner = context.sender;
-    this.id = math.hash32<string>(`${this.owner}-${options[0].toString()}:${options[1].toString()}`);
-    if(Pool.get(this.id)){
+    this.id = math.hash32<string>(
+      `${this.owner}-${options[0].toString()}:${options[1].toString()}`
+    );
+    if (Pool.get(this.id)) {
       throw new Error("Pool with this units already exists");
     }
-    if(options[0] == options[1]){
-      throw new Error("Options")
+    if (options[0] == options[1]) {
+      throw new Error("Options");
     }
     this.options = options;
   }
-  get completed():boolean{
+  get completed(): boolean {
     return !!this.vote || this.skip;
   }
-  
-  static insert(options: u32[]): Pool{
+
+  static insert(options: u32[]): Pool {
     const pool = new Pool(options);
     POOLS.set(pool.id, pool);
     return pool;
   }
-  static get(id: u32): Pool | null{
-    return POOLS.get(id)
+  static get(id: u32): Pool | null {
+    return POOLS.get(id);
   }
-  static getSome(id: u32): Pool{
-    return POOLS.getSome(id)
+  static getSome(id: u32): Pool {
+    return POOLS.getSome(id);
   }
-  static all():Pool[]{
+  static all(): Pool[] {
     return POOLS.values();
   }
-  static list(offset: u32, limit: u32):Pool[]{
+  static list(offset: u32, limit: u32): Pool[] {
     return POOLS.values(offset, offset + limit);
   }
-  static getPoolsByUser(user: AccountId, offset:u32 = 0, limit: u32 = 10): Pool[]{
+  static getPoolsByUser(
+    user: AccountId,
+    offset: u32 = 0,
+    limit: u32 = 10
+  ): Pool[] {
     const pools = Pool.all();
-    const userPools:Pool[] = [];
+    const userPools: Pool[] = [];
     for (let i = 0; i < pools.length; i++) {
       const pool = pools[i];
-      if(pool.owner == user){
+      if (pool.owner == user) {
         userPools.push(pool);
       }
     }
-    return userPools.slice(offset, offset+limit);
+    return userPools.slice(offset, offset + limit);
   }
-  static getPoolsByOption(optionId: u32): Pool[]{
+  static getPoolsByOption(optionId: u32): Pool[] {
     const pools = Pool.all();
-    const poolsWithUnit:Pool[] = [];
+    const poolsWithUnit: Pool[] = [];
     for (let i = 0; i < pools.length; i++) {
       const pool = pools[i];
-      if(pool.options.includes(optionId)){
-        poolsWithUnit.push(pool)
+      if (pool.options.includes(optionId)) {
+        poolsWithUnit.push(pool);
       }
     }
     return poolsWithUnit;
   }
-  static getPoolsWithOptionWinner(optionId: u32): Pool[]{
+  static getPoolsWithOptionWinner(optionId: u32): Pool[] {
     const pools = Pool.all();
-    const result:Pool[] = [];
+    const result: Pool[] = [];
     for (let i = 0; i < pools.length; i++) {
       const pool = pools[i];
-      if(pool.vote == optionId){
-        result.push(pool)
+      if (pool.vote == optionId) {
+        result.push(pool);
       }
     }
     return result;
   }
-  static votePool(poolId:u32, winnerOptionId: u32): void{
-    const pool =  Pool.getSome(poolId);
-    if(!pool.options.includes(winnerOptionId)){
+  static votePool(poolId: u32, winnerOptionId: u32): void {
+    const pool = Pool.getSome(poolId);
+    if (!pool.options.includes(winnerOptionId)) {
       throw new Error("Wrong option");
     }
     pool.vote = winnerOptionId;
     POOLS.set(pool.id, pool);
   }
-  static skipPool(poolId:u32):void{
+  static skipPool(poolId: u32): void {
     const pool = Pool.getSome(poolId);
     pool.skip = true;
     POOLS.set(pool.id, pool);
   }
-  static getUserUncompletedPool(): Pool | null{
+  static getUserUncompletedPool(): Pool | null {
     let unvotedPool: Pool | null = null;
     const pools = Pool.all();
     for (let i = 0; i < pools.length; i++) {
       const pool = pools[i];
-      if(pool.owner == context.sender && !pool.completed){
+      if (pool.owner == context.sender && !pool.completed) {
         unvotedPool = pool;
         break;
       }
     }
-    return unvotedPool
+    return unvotedPool;
   }
-  
 }

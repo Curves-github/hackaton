@@ -1,18 +1,24 @@
-import { getUnitOpponents, getMustUnusedUnit, getClosestByRate, getPoolUnits, computeRate } from './helpers';
-import {Pool} from './models/Pool';
-import {Unit, UnitConstructor} from './models/Unit';
-import { context } from 'near-sdk-as';
+import {
+  getUnitOpponents,
+  getMustUnusedUnit,
+  getClosestByRate,
+  getPoolUnits,
+  computeRate,
+} from "./helpers";
+import { Pool } from "./models/Pool";
+import { Unit, UnitConstructor } from "./models/Unit";
+import { context } from "near-sdk-as";
 
-const ADMINS_ACCOUNTS = ['units_delivery.nft_votes.curves.testnet']
+const ADMINS_ACCOUNTS = ["units_delivery.nft_votes.curves.testnet"];
 
-class PoolWithUnits{
-  pool:Pool;
-  units: Unit[]
+class PoolWithUnits {
+  pool: Pool;
+  units: Unit[];
 }
 
-export function _generatePool(): Pool{
+export function _generatePool(): Pool {
   const unvotedPool = Pool.getUserUncompletedPool();
-  if(unvotedPool){
+  if (unvotedPool) {
     return unvotedPool;
   }
   const units = Unit.all();
@@ -22,20 +28,21 @@ export function _generatePool(): Pool{
   const restUnits: Unit[] = [];
   for (let i = 0; i < units.length; i++) {
     const unit = units[i];
-    if(unit.id == mostUnusedUnit.id || forbiddenUnitsIds.includes(unit.id)) continue;
+    if (unit.id == mostUnusedUnit.id || forbiddenUnitsIds.includes(unit.id))
+      continue;
     restUnits.push(unit);
   }
-  if(restUnits.length == 0){
-    throw new Error("Unique units pair not found")
+  if (restUnits.length == 0) {
+    throw new Error("Unique units pair not found");
   }
   const rival = getClosestByRate(restUnits, mostUnusedUnit);
 
   return Pool.insert([mostUnusedUnit.id, rival.id]);
 }
 
-export function getPoolWithUnits(): PoolWithUnits{
+export function getPoolWithUnits(): PoolWithUnits {
   const pool = _generatePool();
-  const units:Unit[] = [];
+  const units: Unit[] = [];
   for (let i = 0; i < pool.options.length; i++) {
     const unitId = pool.options[i];
     const unit = Unit.getSome(unitId);
@@ -44,31 +51,31 @@ export function getPoolWithUnits(): PoolWithUnits{
 
   return {
     pool,
-    units
-  }
+    units,
+  };
 }
 
-export function skipPool(poolId: u32): void{
+export function skipPool(poolId: u32): void {
   Pool.skipPool(poolId);
   const poolUnits = getPoolUnits(poolId);
   computeRate(poolUnits, -1);
 }
 
-export function votePool(poolId: u32, optionId: u32): void{
+export function votePool(poolId: u32, optionId: u32): void {
   Pool.votePool(poolId, optionId);
   const poolUnits = getPoolUnits(poolId);
-  const index:i8 = poolUnits[0].id == optionId ? 0 : 1;
+  const index: i8 = poolUnits[0].id == optionId ? 0 : 1;
   computeRate(poolUnits, index);
 }
 
-export function addUnits(unitsProps: UnitConstructor[]): Unit[]{
-  if(!ADMINS_ACCOUNTS.includes(context.sender)){
-    throw new Error("Access denied")
+export function addUnits(unitsProps: UnitConstructor[]): Unit[] {
+  if (!ADMINS_ACCOUNTS.includes(context.sender)) {
+    throw new Error("Access denied");
   }
-  const units:Unit[] = [];
+  const units: Unit[] = [];
   for (let i = 0; i < unitsProps.length; i++) {
     const unitProps = unitsProps[i];
-    const unit = Unit.add(unitProps.url,unitProps.owner);
+    const unit = Unit.add(unitProps.url, unitProps.owner);
     units.push(unit);
   }
   return units;
