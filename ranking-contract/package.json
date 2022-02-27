@@ -7,8 +7,8 @@
     "build": "asb",
     "dev": "yarn build && yarn deploy:dev",
     "prod": "yarn build && yarn deploy:prod",
-    "deploy:dev": "near dev-deploy",
-    "deploy:prod": "near deploy --accountId vote-contract.artyom_fn.testnet --wasmFile build/release/contract.wasm",
+    "deploy:dev": "near dev-deploy --wasmFile build/release/ranking-contract.wasm",
+    "deploy:prod": "near deploy --accountId vote-contract.artyom_fn.testnet --wasmFile build/release/ranking-contract.wasm",
     "test": "asp --verbose",
     "test:ci": "asp",
     "validate": "asb -- --noEmit --measure  --sourceMap"
