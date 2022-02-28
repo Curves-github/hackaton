@@ -17,16 +17,15 @@ const ChampionsTable: FunctionComponent = observer(() => {
     <Dialog 
       open={mainStore.ui.dialogOpened} 
       TransitionComponent={Transition} 
- 
       onClose={() => mainStore.ui.setDialogOpened(false)}
     >
       <DialogTitle>Наши фавориты</DialogTitle>
       <DialogContent>
-        {mainStore.cards.sortedCards.map(item => (
-          <Box width={500} mb={1} display="flex" alignItems="center" key={item.id}>
-            <Typography fontWeight={600} sx={{ width: 120 }}>{item.id}</Typography>
-            <Typography fontSize={14}>{Math.floor(item.rate)}</Typography>
-            <img src={item.src} height={50} style={{ marginLeft: "auto" }}/>
+        {mainStore.ui.data && mainStore.ui.data.map(card => (
+          <Box width={500} mb={1} display="flex" alignItems="center" key={card.id}>
+            <Typography fontWeight={600} sx={{ width: 120 }}>{card.id}</Typography>
+            <Typography fontSize={14}>{Math.floor(card.rate)}</Typography>
+            <img src={"./images/"+card.imgSrc} height={50} style={{ marginLeft: "auto" }}/>
           </Box>
         ))}
       </DialogContent>

@@ -5,6 +5,9 @@ import App from './App';
 import { MainStoreProvider } from './store';
 import defaultTheme from './theme/default-theme';
 import styles from './theme/global-styles';
+import { Buffer } from 'buffer';
+
+global.Buffer = Buffer
 
 ReactDOM.render(
   <React.StrictMode>

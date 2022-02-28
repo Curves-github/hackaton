@@ -20,9 +20,9 @@ const Viewport: FunctionComponent = observer(() => {
           <ListItemButton 
             key={index} 
             sx={{ display: "flex", flexDirection: "column", borderRadius: 1, p: 3 }}
-            onClick={() => mainStore.cards.rateCard(index)}
+            onClick={() => mainStore.cards.vote( index === 0? -1: 1 )}
           >
-            <img src={card.src} height={250}/>
+            <img src={"./images/"+card.imgSrc} height={250}/>
             <Typography align="center" fontWeight={600} sx={{ mt: 2 }}>{ card.id }</Typography>
           </ListItemButton>
         ))}
@@ -30,7 +30,7 @@ const Viewport: FunctionComponent = observer(() => {
       <Button 
         variant="outlined" 
         sx={{ mt: 3, px: 5, lineHeight: 3 }}
-        onClick={() => mainStore.cards.rateCard(0, true)}
+        onClick={() => mainStore.cards.vote(0)}
       >
         Я не знаю
       </Button>

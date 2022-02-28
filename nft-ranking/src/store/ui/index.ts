@@ -1,20 +1,38 @@
-import { makeAutoObservable } from "mobx"
+import { action, makeAutoObservable, observable } from "mobx"
+import MainStore from "../store"
 
 class UiStore {
-
+  private mainStore: MainStore
   dialogOpened = false
-  currentToolPanelTab = 0
+  loading = false
+  data: any[] | null = null
 
-  constructor() {
-    makeAutoObservable(this)
+  constructor(mainStore: MainStore) {
+    this.mainStore = mainStore
+    makeAutoObservable(this, {
+      dialogOpened: observable,
+      loading: observable,
+      data: observable,
+      setDialogOpened: action,
+      setData: action
+    })
   }
 
   setDialogOpened(value: boolean) {
     this.dialogOpened = value
+    if (value === true) {
+      this.requestData()
+    }
   }
 
-  setCurrentToolPanelTab(currentToolPanelTab: number) {
-    this.currentToolPanelTab = currentToolPanelTab
+  async requestData() {
+    const data = await this.mainStore.contract.contract.getAll()
+    console.log(data)
+    this.setData(data)
+  }
+
+  setData(data: typeof this.data) {
+    this.data = data
   }
 
 }
