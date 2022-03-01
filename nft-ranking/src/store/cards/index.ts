@@ -1,79 +1,49 @@
-import { makeAutoObservable, observable, toJS } from "mobx"
+import { action, makeAutoObservable, makeObservable, observable, toJS } from "mobx"
+import ContractStore from "../contract"
 
 type Card = {
   id: number, 
   rate: number, 
   participations: number,
-  src: string
+  imgSrc: string
 }
 
 class CardsStore {
 
-  cards = observable.array<Card>()
-
+  private contract: ContractStore
   showed: [ Card, Card ] | null = null
+  timestamp: string | null = null
 
-  constructor() {
-    makeAutoObservable(this)
+  constructor(contract: ContractStore) {
+    this.contract = contract
+    makeObservable(this, {
+      showed: observable,
+      setShowed: action
+    })
   }
 
   async init() {
-    const cards = await fetch("/nft.json").then(a => a.json())
-    this.setCards(cards.map((card: any) => ({
-      id: card.id,
-      rate: 100,
-      participations: 0,
-      src: `/images/${card.id}.png`
-    })))
-    this.getTwoCards()
-  }
-
-  setCards(cards: Card[]) {
-    this.cards.replace(cards)
-  }
-
-  getTwoCards() {
-
+    console.log("loading...")
+    const cards = await this.contract.contract.getTwoCards({}, "150000000000000")
+    this.timestamp = cards.timestamp
+    console.log(cards)
+    this.setShowed([ cards.cardA, cards.cardB ])
     
-    const undergog = this.cards.reduce((card, currentCard) => (currentCard.participations < card.participations)? currentCard: card)
-
-    const rivalComp = (a: Card) => Math.abs(undergog.rate-a.rate)
-    const rival = this.cards.reduce(
-      (card, currentCard) => (currentCard !== undergog && (rivalComp(currentCard) < rivalComp(card)))? currentCard: card,
-      this.cards[ undergog === this.cards[0]? 1: 0 ] 
-    )
-
-    this.showed = [
-      undergog,
-      rival
-    ]
   }
 
-  get sortedCards() {
-    return [...this.cards].sort((a, b) => b.rate - a.rate)
+  async vote(decision: -1 | 0 | 1) {
+    if (!this.showed) return
+    const a = this.showed[0].id
+    const b = this.showed[1].id
+    this.setShowed(null)
+
+    await this.contract.contract.vote({ a, b, decision, timestamp: this.timestamp })
+    
+    this.init()
   }
 
-  rateCard(i: number, isDraw: boolean = false) {
-    if (this.showed === null) return
-    const A = this.showed[i]
-    const B = this.showed[ i === 0? 1: 0 ]
-    const Ea = 1 / (1 + Math.pow(10, ( B.rate - A.rate ) / 400))
-    const Eb = 1 / (1 + Math.pow(10, ( A.rate - B.rate ) / 400))
-
-    const Sa = isDraw? 0.5: 1
-    const Sb = isDraw? 0.5: 0
-
-    A.rate = A.rate + 40 * (Sa - Ea)
-    B.rate = B.rate + 40 * (Sb - Eb)
-
-    A.participations += 1
-    B.participations += 1
-
-    console.log({ A: A.rate, B: B.rate, Ea, Eb })
-
-    setTimeout(() => {
-      this.getTwoCards()
-    }, 20)
+  setShowed(showed: typeof this.showed) {
+    this.showed = showed
   }
 
 }
