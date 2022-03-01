@@ -20,7 +20,7 @@ const Viewport: FunctionComponent = observer(() => {
           <ListItemButton 
             key={index} 
             sx={{ display: "flex", flexDirection: "column", borderRadius: 1, p: 3 }}
-            onClick={() => mainStore.cards.vote( index === 0? -1: 1 )}
+            onClick={() => mainStore.cards.vote( index === 0? 1: -1 )}
           >
             <img src={"./images/"+card.imgSrc} height={250}/>
             <Typography align="center" fontWeight={600} sx={{ mt: 2 }}>{ card.id }</Typography>

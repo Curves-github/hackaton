@@ -24,7 +24,7 @@ class CardsStore {
 
   async init() {
     console.log("loading...")
-    const cards = await this.contract.contract.getTwoCards()
+    const cards = await this.contract.contract.getTwoCards({}, "150000000000000")
     this.timestamp = cards.timestamp
     console.log(cards)
     this.setShowed([ cards.cardA, cards.cardB ])

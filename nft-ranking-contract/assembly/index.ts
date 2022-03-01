@@ -21,6 +21,10 @@ export function getAll(): Card[] {
   return Card.getAll()
 }
 
+export function getLength(): u32 {
+  return Card.getLength()
+}
+
 export function clearAll(): bool {
   return Card.clearAll()
 }

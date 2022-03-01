@@ -28,7 +28,7 @@ class UiStore {
   async requestData() {
     const data = await this.mainStore.contract.contract.getAll()
     console.log(data)
-    this.setData(data)
+    this.setData(data.sort((a: any, b: any) => b.rate - a.rate))
   }
 
   setData(data: typeof this.data) {

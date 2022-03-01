@@ -2,7 +2,6 @@
 import { math, PersistentSet, datetime, PersistentUnorderedMap } from "near-sdk-as";
 
 export const votes = new PersistentSet<u32>("votes")
-export const cardIds = new PersistentSet<u32>("cardIds")
 export const cards = new PersistentUnorderedMap<u32, Card>("cards");
 
 
@@ -35,9 +34,6 @@ export class Card {
   static insert(id: string, src: string): Card {
 
     const todo = new Card(id, src);
-    if (cardIds.has(todo.id)) {
-      throw new Error(`Card id ${id} already exists`)
-    }
  
     cards.set(todo.id, todo);
 
@@ -45,7 +41,11 @@ export class Card {
   }
 
   static getAll(): Card[] {
-    return cards.values()
+    return cards.values(<u16>Mathf.max(<f32>cards.length-50, 0), cards.length)
+  }
+
+  static getLength(): u32 {
+    return cards.length
   }
 
   static currentTimestamp(): u64 {
@@ -68,10 +68,10 @@ export class Card {
   }
 
   static getTwoCards(): Vote {
-    const allCards = cards.values()
+    const allCards = Card.getAll()
     let indexA = 0
     let minParticipations = allCards[indexA].participations
-    for (let i = 1; i < cards.length; i++) {
+    for (let i = 1; i < allCards.length; i++) {
       if (allCards[i].participations < minParticipations) {
         minParticipations = allCards[i].participations
         indexA = i
@@ -80,7 +80,7 @@ export class Card {
 
     let indexB = 0
     let closestRate: f32 = 9999
-    for (let i = 0; i < cards.length; i++) {
+    for (let i = 0; i < allCards.length; i++) {
       if (i === indexA) continue
       if (Mathf.abs(allCards[i].rate - allCards[indexA].rate) < closestRate) {
         closestRate = Mathf.abs(allCards[i].rate - allCards[indexA].rate)
