@@ -1,8 +1,41 @@
 // contract/assembly/model.ts
-import { math, PersistentSet, datetime, PersistentUnorderedMap } from "near-sdk-as";
+import { math, PersistentSet, datetime, PersistentUnorderedMap, AVLTree } from "near-sdk-as";
 
-export const votes = new PersistentSet<u32>("votes")
-export const cards = new PersistentUnorderedMap<u32, Card>("cards");
+export const votes = new PersistentSet<u32>("v")
+export const cards = new PersistentUnorderedMap<u32, Card>("c");
+
+export const rateTree = new AVLTree<f64, RateTreeNode>('r');
+export const partTree = new AVLTree<f64, PartTreeNode>('p')
+
+const RATE_PRECISION = 2;
+
+class UniqSessionFloat{
+  private time: u64
+  private count: u64
+  constructor(){
+    this.time = datetime.block_datetime().epochNanoseconds;
+    this.count = 1;
+  }
+  get():f64{
+    const f = <f64>this.time + Math.pow(10, <f64>this.count);
+    this.count += 1;
+    return f * <f64>Math.pow(10, -this.time.toString().length)
+  }
+}
+
+const uniqSessionFloat = new UniqSessionFloat();
+
+@nearBindgen
+export class RateTreeNode{
+  card: u32;
+  rate: f32;
+}
+@nearBindgen
+export class PartTreeNode{
+  card: u32;
+  part: u32;
+}
+
 
 
 @nearBindgen
@@ -20,24 +53,43 @@ export class Vote {
 @nearBindgen
 export class Card {
   id: u32
-  rate: f32
-  participations: u32
   imgSrc: string
+  part: u32
+  uniqPart: f64
+  // rate: f32 //2 precision (100.03, 100.12)
+  uniqRate: f64
+  private _rate: f32;
+
+  get rate():f32{
+    return this._rate;
+  }
+  set rate(r:f32){
+    this._rate = Mathf.fround(r);
+  }
 
   constructor(id: string, src: string) {
     this.id = math.hash32<string>(id);
-    this.imgSrc = src
-    this.rate = 100
-    this.participations = 0
+    this.imgSrc = src;
+    this.part = 0
+    this.uniqPart = <f64>this.part + uniqSessionFloat.get()
+    this.rate = 100;
+    this.uniqRate = <f64>this.rate + uniqSessionFloat.get() * Math.pow(10, -RATE_PRECISION * 10);
   }
 
   static insert(id: string, src: string): Card {
+    const card = new Card(id, src);
+    cards.set(card.id, card);
+    partTree.insert(card.uniqPart, {
+      card: card.id,
+      part: card.part
+    })
+    rateTree.insert(card.uniqRate, {
+      card: card.id,
+      rate: card.rate
+    })
 
-    const todo = new Card(id, src);
- 
-    cards.set(todo.id, todo);
 
-    return todo;
+    return card;
   }
 
   static getAll(): Card[] {
@@ -70,10 +122,10 @@ export class Card {
   static getTwoCards(): Vote {
     const allCards = Card.getAll()
     let indexA = 0
-    let minParticipations = allCards[indexA].participations
+    let minParticipations = allCards[indexA].part
     for (let i = 1; i < allCards.length; i++) {
-      if (allCards[i].participations < minParticipations) {
-        minParticipations = allCards[i].participations
+      if (allCards[i].part < minParticipations) {
+        minParticipations = allCards[i].part
         indexA = i
       }
     }
@@ -110,8 +162,8 @@ export class Card {
     cardA.rate = cardA.rate + 40 * (Sa - Ea)
     cardB.rate = cardB.rate + 40 * (Sb - Eb)
 
-    cardA.participations += 1
-    cardB.participations += 1
+    cardA.part += 1
+    cardB.part += 1
 
     cards.set(decision < 0? b: a, cardA)
     cards.set(decision < 0? a: b, cardB)
