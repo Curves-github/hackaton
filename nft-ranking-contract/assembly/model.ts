@@ -4,8 +4,8 @@ import { math, PersistentSet, datetime, PersistentUnorderedMap, AVLTree } from "
 export const votes = new PersistentSet<u32>("v")
 export const cards = new PersistentUnorderedMap<u32, Card>("c");
 
-export const rateTree = new AVLTree<f64, RateTreeNode>('r');
-export const partTree = new AVLTree<f64, PartTreeNode>('p')
+export const rateTree = new AVLTree<f64, u32>('r');
+export const partTree = new AVLTree<f64, u32>('p')
 
 const RATE_PRECISION = 1;
 
@@ -18,27 +18,13 @@ class UniqSessionFloat{
   }
   get():f64{
     const hash = math.hash32<string>(`${this.time.toString()} - ${this.count.toString()}`);
-    // const f = <f64>this.time + Math.pow(10, <f64>this.count);
     this.count += 1;
     return hash * Math.pow(10, -hash.toString().length);
-    // return f * <f64>Math.pow(10, -this.time.toString().length)
   }
   static SIZE:u8 = 10;
 }
 
 const uniqSessionFloat = new UniqSessionFloat();
-
-@nearBindgen
-export class RateTreeNode{
-  card: u32;
-  rate: f32;  // Можно удалить, нет необходимости
-}
-@nearBindgen
-export class PartTreeNode{
-  card: u32; 
-  part: u32;  // Можно удалить, нет необходимости
-}
-
 
 
 @nearBindgen
@@ -57,8 +43,6 @@ export class Vote {
 export class Card {
   id: u32
   imgSrc: string
-  uniqPart: f64 // same as part, but with fractional(ex: part=10, uniqPart=10.02342; part=20, uniqPart=20.234)
-  uniqRate: f64 // same as rate, but with fractional(ex: rate=100.3, uniqRate=100.12343; rate=123.9, uniqRate=123.52341)
   private _rate: f32;
   private _part: u32;
 
@@ -67,16 +51,14 @@ export class Card {
   }
 
   set part(p:u32){
-    this._part = p;
-    this.uniqPart = <f64>p + uniqSessionFloat.get();
+    this._part = <f64>p + uniqSessionFloat.get();
   }
 
   get rate():f32{
     return this._rate;
   }
   set rate(r:f32){
-    this.uniqRate = <f64>r + uniqSessionFloat.get() * Math.pow(10, -RATE_PRECISION);
-    this._rate = Mathf.fround(r);
+    this._rate = Mathf.fround(r) + uniqSessionFloat.get() * Math.pow(10, -RATE_PRECISION);
   }
 
   constructor(id: string, src: string) {
@@ -89,14 +71,8 @@ export class Card {
   static insert(id: string, src: string): Card {
     const card = new Card(id, src);
     cards.set(card.id, card);
-    partTree.insert(card.uniqPart, {
-      card: card.id,
-      part: card.part
-    })
-    rateTree.insert(card.uniqRate, {
-      card: card.id,
-      rate: card.rate
-    })
+    partTree.insert(card.rate, card.id);
+    rateTree.insert(card.rate, card.id);
     return card;
   }
 
@@ -127,22 +103,22 @@ export class Card {
     return votes.has(voteId)
   }
 
-  static getClosestRateCard(card: Card){
-    const rateKey = card.uniqRate;
-
+  static getClosestRateCard(card: Card):Card{
     // дробная часть всегда одинаковой длинны у rate,
     // добавляя к еще одно число в конец, мы всегда будем больше текущего, но меньше остальных
+    const rateKey = card.rate;
     const ratePrecisionPart = Math.pow(10,rateKey.toString().length);
-    let lowerRateKey: f64 | null = null;
+    let lowerRateKey: f64 = 0;
     try {
       lowerRateKey = rateTree.lower(rateKey + ratePrecisionPart);
     } catch(err){}
-    let higherRateKey: f64 | null = null;
+    let higherRateKey: f64 = 0;
     try {
       higherRateKey = rateTree.higher(rateKey - ratePrecisionPart);
-    } catch(err){}
+    } catch(err){
+    }
 
-    let closestRateKey: f64 | null = null;
+    let closestRateKey: f64 = 0;
 
     if(lowerRateKey && higherRateKey){
       closestRateKey = Math.abs(rateKey - lowerRateKey) > Math.abs(rateKey - higherRateKey) ? higherRateKey : lowerRateKey;  
@@ -150,27 +126,25 @@ export class Card {
       closestRateKey = lowerRateKey || higherRateKey;
     }
 
-    if(!closestRateKey){
+    if(closestRateKey == 0){
       throw new Error('Closest not found');
     }
     
     const closestRateTreeNode = rateTree.getSome(closestRateKey);
-    const closestRateCard = cards.getSome(closestRateTreeNode.card);
+    const closestRateCard = cards.getSome(closestRateTreeNode);
 
     return closestRateCard;
   }
 
   static getTwoCards(): Vote {
     const minUniqPart = partTree.min();
-    const minPartTreeNode = partTree.getSome(minUniqPart);
-    const cardWithMinPart = cards.getSome(minPartTreeNode.card);
-    const cardClosestByRate = Card.getClosestRateCard(cardWithMinPart);
+    const minPartCardId = partTree.getSome(minUniqPart);
+    const minPartCard = cards.getSome(minPartCardId);
+    const cardClosestByRate = Card.getClosestRateCard(minPartCard);
    
-
-
-    const time = Card.createVoteStamp(cardWithMinPart.id, cardClosestByRate.id)
+    const time = Card.createVoteStamp(minPartCard.id, cardClosestByRate.id)
     
-    return new Vote(cardWithMinPart, cardClosestByRate, time)
+    return new Vote(minPartCard, cardClosestByRate, time)
   }
 
   static vote(a: u32, b: u32, decision: i8, timestamp: u64): bool {
@@ -188,27 +162,19 @@ export class Card {
     const Sb: f32 = decision === 0? 0.5: 0
 
     
-    partTree.delete(cardA.uniqPart)
-    partTree.delete(cardB.uniqPart)
-    rateTree.delete(cardA.uniqRate)
-    rateTree.delete(cardB.uniqRate)
+    partTree.delete(cardA.part)
+    partTree.delete(cardB.part)
+    rateTree.delete(cardA.rate)
+    rateTree.delete(cardB.rate)
 
     cardA.rate = cardA.rate + 40 * (Sa - Ea)
     cardB.rate = cardB.rate + 40 * (Sb - Eb)
 
     cardA.part += 1
     cardB.part += 1
-
-    //UPDATE TREE
     
-    partTree.insert(cardA.uniqRate, {
-      card: cardA.id,
-      part: cardA.part
-    })
-    partTree.insert(cardB.uniqRate, {
-      card: cardB.id,
-      part: cardB.part
-    })
+    partTree.insert(cardA.rate, cardA.id)
+    partTree.insert(cardB.rate, cardB.id)
 
 
     cards.set(decision < 0? b: a, cardA)
