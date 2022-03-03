@@ -23,7 +23,7 @@ class UniqSessionFloat{
     return hash * Math.pow(10, -hash.toString().length);
     // return f * <f64>Math.pow(10, -this.time.toString().length)
   }
-  static HASH_SIZE:u8 = 10;
+  static SIZE:u8 = 10;
 }
 
 const uniqSessionFloat = new UniqSessionFloat();
@@ -31,12 +31,12 @@ const uniqSessionFloat = new UniqSessionFloat();
 @nearBindgen
 export class RateTreeNode{
   card: u32;
-  rate: f32;
+  rate: f32;  // Можно удалить, нет необходимости
 }
 @nearBindgen
 export class PartTreeNode{
-  card: u32;
-  part: u32;
+  card: u32; 
+  part: u32;  // Можно удалить, нет необходимости
 }
 
 
@@ -57,15 +57,25 @@ export class Vote {
 export class Card {
   id: u32
   imgSrc: string
-  part: u32
   uniqPart: f64 // same as part, but with fractional(ex: part=10, uniqPart=10.02342; part=20, uniqPart=20.234)
   uniqRate: f64 // same as rate, but with fractional(ex: rate=100.3, uniqRate=100.12343; rate=123.9, uniqRate=123.52341)
   private _rate: f32;
+  private _part: u32;
+
+  get part():u32{
+    return this._part;
+  }
+
+  set part(p:u32){
+    this._part = p;
+    this.uniqPart = <f64>p + uniqSessionFloat.get();
+  }
 
   get rate():f32{
     return this._rate;
   }
   set rate(r:f32){
+    this.uniqRate = <f64>r + uniqSessionFloat.get() * Math.pow(10, -RATE_PRECISION);
     this._rate = Mathf.fround(r);
   }
 
@@ -73,9 +83,7 @@ export class Card {
     this.id = math.hash32<string>(id);
     this.imgSrc = src;
     this.part = 0
-    this.uniqPart = <f64>this.part + uniqSessionFloat.get()
     this.rate = 100;
-    this.uniqRate = <f64>this.rate + uniqSessionFloat.get() * Math.pow(10, -RATE_PRECISION * 10);
   }
 
   static insert(id: string, src: string): Card {
@@ -156,13 +164,13 @@ export class Card {
     const minUniqPart = partTree.min();
     const minPartTreeNode = partTree.getSome(minUniqPart);
     const cardWithMinPart = cards.getSome(minPartTreeNode.card);
-
+    const cardClosestByRate = Card.getClosestRateCard(cardWithMinPart);
    
 
 
-    const time = Card.createVoteStamp(allCards[indexA].id, allCards[indexB].id)
+    const time = Card.createVoteStamp(cardWithMinPart.id, cardClosestByRate.id)
     
-    return new Vote(allCards[indexA], allCards[indexB], time)
+    return new Vote(cardWithMinPart, cardClosestByRate, time)
   }
 
   static vote(a: u32, b: u32, decision: i8, timestamp: u64): bool {
@@ -179,17 +187,36 @@ export class Card {
     const Sa: f32 = decision === 0? 0.5: 1
     const Sb: f32 = decision === 0? 0.5: 0
 
+    
+    partTree.delete(cardA.uniqPart)
+    partTree.delete(cardB.uniqPart)
+    rateTree.delete(cardA.uniqRate)
+    rateTree.delete(cardB.uniqRate)
+
     cardA.rate = cardA.rate + 40 * (Sa - Ea)
     cardB.rate = cardB.rate + 40 * (Sb - Eb)
 
     cardA.part += 1
     cardB.part += 1
 
+    //UPDATE TREE
+    
+    partTree.insert(cardA.uniqRate, {
+      card: cardA.id,
+      part: cardA.part
+    })
+    partTree.insert(cardB.uniqRate, {
+      card: cardB.id,
+      part: cardB.part
+    })
+
+
     cards.set(decision < 0? b: a, cardA)
     cards.set(decision < 0? a: b, cardB)
 
     return true
   }
+
 
   static clearAll(): bool {
     cards.clear()
