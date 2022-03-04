@@ -1,5 +1,5 @@
 // contract/assembly/index.ts
-import { Card, Vote } from "./model";
+import { Card, Pair } from "./model";
 
 // export the create method. This acts like an endpoint
 // that we'll be able to call from our web app.
@@ -9,7 +9,7 @@ export function create(id: string, imgSrc: string): Card {
 }
 
 
-export function getTwoCards(): Vote {
+export function getTwoCards(): Pair {
   return Card.getTwoCards();
 }
 
