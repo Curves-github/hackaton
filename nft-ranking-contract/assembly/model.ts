@@ -1,11 +1,12 @@
 // contract/assembly/model.ts
 import { math, PersistentSet, datetime, PersistentUnorderedMap, AVLTree, context } from "near-sdk-as";
 
-export const pairsHashes = new PersistentSet<u32>("ph")
-export const cards = new PersistentUnorderedMap<u32, Card>("c");
+export const pairsHashes = new PersistentSet<u32>("h")
+export const cardsMeta = new PersistentUnorderedMap<u32, CardMeta>("m");
+export const cardsToRate = new PersistentUnorderedMap<u32, f64>("r");
+export const cardsToPart = new PersistentUnorderedMap<u32, f64>("p");
 //  можно сохранять максимально 5 элементов, когда пришел 6ой - каждый бросает кубик(ранд), выбывает наименьший
 //  правда тогда чем раньше ты попал в массив для этой карточки, тем сложнее тебе там остаться
-// окей - мы сохраняем 
 export const cardsTopVotes = new PersistentUnorderedMap<u32, u32[]>('v');  
 
 export const rates = new AVLTree<f64, u32>('r');
@@ -48,49 +49,127 @@ export class Pair {
 }
 
 @nearBindgen
-export class Card {
-  id: u32
-  imgSrc: string
-  private _rate: f64;
-  private _part: f64;
+export class CardRate{
+  static getUniqRate(rate:f64):f64{
+    const rounedRate = Math.round(rate * Math.pow(10, RATE_PRECISION));
+    return (rounedRate + uniqSessionFloat.get()) * Math.pow(10, -RATE_PRECISION);
+  }
+  static insert(card:u32, rate:f64=100):f64{
+    const uniqRate = CardRate.getUniqRate(rate);
+    cardsToRate.set(card, uniqRate);
+    rates.insert(uniqRate, card);
 
-  get part():f64{
-    return this._part;
+    return uniqRate;
+  }
+  static getByCard(card:u32):f64 | null{
+    return cardsToRate.get(card);
+  }
+  static getSomeByCard(card:u32):f64{
+    return cardsToRate.getSome(card);
+  }
+  static getByRate(rate:f64): u32 | null{
+    return rates.get(rate);
+  }
+  static getSomeByRate(rate:f64): u32{
+    return rates.getSome(rate);
+  }
+  static update(card:u32, oldRate:f64, newRate:f64):f64{
+    const uniqNewRate = CardRate.getUniqRate(newRate);
+    cardsToRate.set(card, uniqNewRate);
+    rates.delete(oldRate);
+    rates.insert(uniqNewRate, card);
+    return uniqNewRate
+  }
+  static minRate():f64{
+    return rates.min()
+  }
+  static maxRate():f64{
+    return rates.max();
+  }
+  static lowerRate(target:f64):f64{
+    return rates.lower(target);
+  }
+  static higherRate(target:f64):f64{
+    return rates.higher(target);
+  }
+}
+
+@nearBindgen
+export class CardPart{
+  static getUniqPart(part:f64):f64{
+    return Math.trunc(part) + uniqSessionFloat.get();
+  }
+  static insert(card:u32, part:f64=0):f64{
+    const uniqPart = CardPart.getUniqPart(part);
+    cardsToPart.set(card, uniqPart);
+    parts.insert(uniqPart, card);
+    return uniqPart;
   }
 
-  set part(p:f64){
-    this._part = p + uniqSessionFloat.get();
+  static getByCard(card:u32):f64 | null{
+    return cardsToPart.get(card);
   }
+  static getSomeByCard(card:u32):f64{
+    return cardsToPart.getSome(card);
+  }
+  static getByPart(part:u32):f64 | null{
+    return parts.get(part);
+  }
+  static getSomeByPart(part:u32):f64{
+    return parts.getSome(part);
+  }
+  static update(card:u32,oldPart:f64,newPart:f64):f64{
+    const uniqNewPart = CardPart.getUniqPart(newPart);
+    cardsToPart.set(card, uniqNewPart);
+    parts.delete(oldPart);
+    parts.insert(uniqNewPart, card);
 
-  get rate():f64{
-    return this._rate;
+    return uniqNewPart
   }
-  set rate(r:f64){
-    const rounedRate = Math.round(r * Math.pow(10, RATE_PRECISION));
-    this._rate = (rounedRate + uniqSessionFloat.get()) * Math.pow(10, -RATE_PRECISION);
+  static minPart():f64{
+    return parts.min();
   }
+}
 
-  constructor(id: string, src: string) {
+@nearBindgen
+export class CardMeta{
+  id: u32;
+  imgSrc: string;
+
+  constructor(id: string, src: string){
     this.id = math.hash32<string>(id);
     this.imgSrc = src;
-    this.part = 0
-    this.rate = 100;
   }
 
-  static insert(id: string, src: string): Card {
-    const card = new Card(id, src);
-    cards.set(card.id, card);
-    parts.insert(card.rate, card.id);
-    rates.insert(card.rate, card.id);
+  static insert(id: string, src: string): CardMeta{
+    const card = new CardMeta(id, src);
+    cardsMeta.set(card.id, card);
     return card;
   }
 
-  static getAll(): Card[] {
-    return cards.values(<u16>Mathf.max(<f32>cards.length-50, 0), cards.length)
+  static get(id: u32): CardMeta|null{
+    return cardsMeta.get(id);
   }
+  static getSome(id: u32): CardMeta{
+    return cardsMeta.getSome(id);
+  }
+}
 
-  static getLength(): u32 {
-    return cards.length
+@nearBindgen
+export class Card {
+  meta: CardMeta;
+  rate: f64;
+  part: f64;
+  
+  static insert(id: string, src: string): Card {
+    const meta = CardMeta.insert(id, src);
+    const rate = CardRate.insert(meta.id);
+    const part = CardPart.insert(meta.id);
+    return {
+      meta,
+      rate,
+      part
+    }
   }
 
   static currentTimestamp(): u64 {
@@ -112,16 +191,16 @@ export class Card {
     return pairsHashes.has(voteId)
   }
 
-  static getClosestRateCard(card: Card):Card{
+  static getClosestRateCard(card: u32):u32{
     // дробная часть всегда одинаковой длинны у rate,
     // добавляя к еще одно число в конец, мы всегда будем больше текущего, но меньше остальных
-    const rateKey = card.rate;
-    const ratePrecisionPart = Math.pow(10,rateKey.toString().length);
-    const lowerThan = rateKey + ratePrecisionPart;
-    const lowerRateKey:f64 = lowerThan > rates.min() ? rates.lower(lowerThan) : 0; //плохо конечно на это полагаться, но в текущей реализации рейт не может быть нулем
+    const targetRate = CardRate.getSomeByCard(card)
+    const ratePrecisionPart = Math.pow(10,targetRate.toString().length);
+    const lowerThan = targetRate + ratePrecisionPart;
+    const lowerRateKey:f64 = lowerThan > CardRate.minRate() ? CardRate.lowerRate(lowerThan) : 0; //плохо конечно на это полагаться, но в текущей реализации рейт не может быть нулем
     
-    const higherThan = rateKey - ratePrecisionPart
-    const higherRateKey:f64 = higherThan < rates.max() ? rates.higher(higherThan) : 0; 
+    const higherThan = targetRate - ratePrecisionPart
+    const higherRateKey:f64 = higherThan < CardRate.maxRate() ? CardRate.higherRate(higherThan) : 0; 
 
     let closestRateKey: f64 = 0;
 
@@ -130,27 +209,28 @@ export class Card {
     } 
     
     if(lowerRateKey && higherRateKey){
-      closestRateKey = Math.abs(rateKey - lowerRateKey) > Math.abs(rateKey - higherRateKey) ? higherRateKey : lowerRateKey;  
+      closestRateKey = Math.abs(targetRate - lowerRateKey) > Math.abs(targetRate - higherRateKey) ? higherRateKey : lowerRateKey;  
     } else{
       closestRateKey = lowerRateKey || higherRateKey;
     }
 
     
-    const closestratesNode = rates.getSome(closestRateKey);
-    const closestRateCard = cards.getSome(closestratesNode);
+    const closestRateCardId = CardRate.getSomeByRate(closestRateKey);
 
-    return closestRateCard;
+    return closestRateCardId;
   }
 
   static getTwoCards(): Pair {
-    const minUniqPart = parts.min();
-    const minPartCardId = parts.getSome(minUniqPart);
-    const minPartCard = cards.getSome(minPartCardId);
-    const cardClosestByRate = Card.getClosestRateCard(minPartCard);
+    const minUniqPart = CardPart.minPart();
+    const minPartCardId = CardPart.getSomeByPart(minUniqPart);
+    const cardClosestByRate = Card.getClosestRateCard(minPartCardId);
    
-    const time = Card.createPairStamp(minPartCard.id, cardClosestByRate.id)
+    const time = Card.createPairStamp(minPartCardId, cardClosestByRate)
     
-    return new Pair(minPartCard, cardClosestByRate, time)
+    const cardA = Card.getSome(minPartCardId);
+    const cardB = Card.getSome(cardClosestByRate);
+
+    return new Pair(cardA, cardB, time)
   }
 
   static vote(a: u32, b: u32, decision: i8, timestamp: u64): bool {
@@ -158,49 +238,44 @@ export class Card {
       return false
     }
 
-    const cardA = cards.getSome(decision < 0? b: a)
-    const cardB = cards.getSome(decision < 0? a: b)
+    let cardA = decision < 0? b: a;
+    let cardB = decision < 0? a: b;
+    const rateA = CardRate.getSomeByCard(cardA)
+    const rateB = CardRate.getSomeByCard(cardB)
+    const partA = CardPart.getSomeByCard(cardA)
+    const partB = CardPart.getSomeByCard(cardB)
+    
 
-    const Ea: f64 = 1 / (1 + Math.pow(10, ( cardB.rate - cardA.rate ) / 400))
-    const Eb: f64 = 1 / (1 + Math.pow(10, ( cardA.rate - cardB.rate ) / 400))
+    const Ea: f64 = 1 / (1 + Math.pow(10, ( rateB - rateA ) / 400))
+    const Eb: f64 = 1 / (1 + Math.pow(10, ( rateA - rateB ) / 400))
 
-    const Sa: f64 = decision === 0? 0.5: 1
-    const Sb: f64 = decision === 0? 0.5: 0
+    const Sa: f64 = decision == 0 ? 0.5 : 1
+    const Sb: f64 = decision == 0 ? 0.5 : 0
 
-    const newRateA = cardA.rate + 40 * (Sa - Ea)
-    const newRateB = cardB.rate + 40 * (Sb - Eb)
-    const newPartA = cardA.part + 1;
-    const newPartB = cardB.part + 1;
+    const newRateA = rateA + 40 * (Sa - Ea)
+    const newRateB = rateB + 40 * (Sb - Eb)
+    const newPartA = partA + 1;
+    const newPartB = partB + 1;
 
-    rates.delete(cardB.rate)
-    rates.delete(cardA.rate)
-    rates.insert(newRateA, cardB.id)
-    rates.insert(newRateB, cardB.id)
-
-    parts.delete(cardA.part)
-    parts.delete(cardB.part)
-    parts.insert(newPartA, cardA.id)
-    parts.insert(newPartB, cardB.id)
+    CardRate.update(cardA, rateA, newRateA);
+    CardRate.update(cardB, rateB, newRateB);
+    CardPart.update(cardA, partA, newPartA);
+    CardPart.update(cardB, partB, newPartB)
 
     // если есть победитель - ему ставим его наименьший рейтинг
     // если победителя нет - тогда "штрафуем" пользователя ставя initialRate в голосвание - усредненное
     // ставим Больший initial рейт для карточек, чтобы выигрыш/шанс был меньше.
-    if(decision != 0){
-      Card.setVote(cardA.id, cardA.rate);
-    } else {
-      Card.setVote(cardA.id, Math.max(newRateA, cardA.rate));
-      Card.setVote(cardB.id, Math.max(newRateB, cardB.rate));
-    }
+    // if(decision != 0){
+    //   Card.setVote(cardA, cardA.rate);
+    // } else {
+    //   Card.setVote(cardA.id, Math.max(newRateA, cardA.rate));
+    //   Card.setVote(cardB.id, Math.max(newRateB, cardB.rate));
+    // }
     
+    // cards.set(decision < 0? b: a, cardA)
+    // cards.set(decision < 0? a: b, cardB)
 
-    cardA.rate = newRateA;
-    cardB.rate = newRateB;
-    cardA.part = newPartA;
-    cardB.part = newPartB;
-    cards.set(decision < 0? b: a, cardA)
-    cards.set(decision < 0? a: b, cardB)
-
-    return true
+    return true;
   }
 
   static setVote(card:u32, initialRate:f64):void{
@@ -209,9 +284,25 @@ export class Card {
     // VoteGroup.addVote(card, vote);
   }
 
-
-  static clearAll(): bool {
-    cards.clear()
-    return true
+  static get(card:u32): Card | null{
+    const meta = CardMeta.get(card);
+    const part = CardPart.getByCard(card);
+    const rate = CardRate.getByRate(card);
+    if(meta == null || part == null || rate == null){
+      return null
+    }
+    return {
+      meta,
+      part,
+      rate
+    }
+  }
+  static getSome(card:u32):Card{
+    return {
+      meta: CardMeta.getSome(card),
+      part: CardPart.getSomeByCard(card),
+      rate: CardRate.getSomeByRate(card),
+    }
   }
 }
+

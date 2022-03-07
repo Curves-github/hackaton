@@ -17,14 +17,14 @@ export function vote(a: u32, b: u32, decision: i8, timestamp: u64): bool {
   return Card.vote(a, b, decision, timestamp);
 }
 
-export function getAll(): Card[] {
-  return Card.getAll()
-}
+// export function getAll(): Card[] {
+//   return Card.getAll()
+// }
 
-export function getLength(): u32 {
-  return Card.getLength()
-}
+// export function getLength(): u32 {
+//   return Card.getLength()
+// }
 
-export function clearAll(): bool {
-  return Card.clearAll()
-}
+// export function clearAll(): bool {
+//   return Card.clearAll()
+// }
