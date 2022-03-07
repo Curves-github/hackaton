@@ -3,79 +3,18 @@ import { math, PersistentSet, datetime, PersistentUnorderedMap, AVLTree, context
 
 export const pairsHashes = new PersistentSet<u32>("ph")
 export const cards = new PersistentUnorderedMap<u32, Card>("c");
-//мы не знаем какие карточки в финале будут самые рейтинговые, по этому сохраняем все
-//но мы можем понимать какие юзеры внесут максимальный вклад(те у которых минимальный initialRate)
-//можем еще отдельно для каждого дерева сохранять min/max 
-export const cardsTopVotes = new PersistentUnorderedMap<u32, VoteGroup>('v');
+//  можно сохранять максимально 5 элементов, когда пришел 6ой - каждый бросает кубик(ранд), выбывает наименьший
+//  правда тогда чем раньше ты попал в массив для этой карточки, тем сложнее тебе там остаться
+// окей - мы сохраняем 
+export const cardsTopVotes = new PersistentUnorderedMap<u32, u32[]>('v');  
 
 export const rates = new AVLTree<f64, u32>('r');
 export const parts = new AVLTree<f64, u32>('p')
 
-const RATE_PRECISION = 1;
+const RATE_PRECISION = 3;
 const MAX_VOTES_PER_CARD = 5;
 const MAX_VOTES = 5;
 
-@nearBindgen
-class VoteGroup{
-  maxInitialRateIndex: u16;
-  maxInitialRateValue: f64;
-  votes:Vote[]
-
-  constructor(maxInitialRateIndex:u16, maxInitialRateValue:f64, votes:Vote[]){
-    this.maxInitialRateIndex = maxInitialRateIndex;
-    this.maxInitialRateValue = maxInitialRateValue;
-    this.votes = votes;
-  }
-
-  static insert(card: u32, maxInitialRateIndex:u16, maxInitialRateValue:f64, votes:Vote[]): VoteGroup{
-    const voteGroup = new VoteGroup(maxInitialRateIndex,maxInitialRateValue, votes);
-    cardsTopVotes.set(card, voteGroup);
-    return voteGroup;
-  }
-
-  static addVote(card:u32, vote:Vote):void{
-    let voteGroup = cardsTopVotes.get(card);
-    if(!voteGroup){
-      voteGroup = VoteGroup.insert(card,0,vote.initialRate,[vote]);
-      return;
-    }
-    // если vote.initialRate больше максимального рейта в списке - значит этот vote никогда не войдет в топ победителей
-    if(voteGroup.votes.length >= MAX_VOTES_PER_CARD && vote.initialRate >= voteGroup.maxInitialRateValue){
-      return;
-    }
-
-    if(voteGroup.votes.length < MAX_VOTES_PER_CARD){
-      voteGroup.votes.push(vote);
-      const votes = voteGroup.votes;
-      //вычисляем новый индекс и рейт
-      let maxValueIndex:u16 = 0;
-      for (let i:u16 = 1; i < u16(votes.length); i++) {
-        const vote = votes[i];
-        if(vote.initialRate > votes[maxValueIndex].initialRate){
-          maxValueIndex = i;
-        }
-      }
-      voteGroup.maxInitialRateIndex = maxValueIndex;
-      voteGroup.maxInitialRateValue = votes[maxValueIndex].initialRate;
-    } else if(vote.initialRate < voteGroup.maxInitialRateValue) {
-      // индекс не изменился, только рейт
-      voteGroup.votes[voteGroup.maxInitialRateIndex];
-      voteGroup.maxInitialRateValue = vote.initialRate;
-    }
-    cardsTopVotes.set(card, voteGroup);
-  }
-}
-
-@nearBindgen
-class Vote{
-  userAccount: string;
-  initialRate: f64;
-
-  constructor(userAccount: string, initialRate: f64){
-    this.userAccount = userAccount;
-    this.initialRate = initialRate;
-  }
-}
 
 class UniqSessionFloat{
   private time: u64
@@ -112,22 +51,23 @@ export class Pair {
 export class Card {
   id: u32
   imgSrc: string
-  private _rate: f32;
-  private _part: u32;
+  private _rate: f64;
+  private _part: f64;
 
-  get part():u32{
+  get part():f64{
     return this._part;
   }
 
-  set part(p:u32){
-    this._part = <f64>p + uniqSessionFloat.get();
+  set part(p:f64){
+    this._part = p + uniqSessionFloat.get();
   }
 
-  get rate():f32{
+  get rate():f64{
     return this._rate;
   }
-  set rate(r:f32){
-    this._rate = Mathf.fround(r) + uniqSessionFloat.get() * Math.pow(10, -RATE_PRECISION);
+  set rate(r:f64){
+    const rounedRate = Math.round(r * Math.pow(10, RATE_PRECISION));
+    this._rate = (rounedRate + uniqSessionFloat.get()) * Math.pow(10, -RATE_PRECISION);
   }
 
   constructor(id: string, src: string) {
@@ -177,32 +117,24 @@ export class Card {
     // добавляя к еще одно число в конец, мы всегда будем больше текущего, но меньше остальных
     const rateKey = card.rate;
     const ratePrecisionPart = Math.pow(10,rateKey.toString().length);
-    let lowerRateKey: f64 = 0;
-    //TODO: избавиться от try/catch(это не поддерживается), проерять через min
-    try {
-      lowerRateKey = rates.lower(rateKey + ratePrecisionPart);
-    } catch(err){
-      const a = err;
-    }
-    let higherRateKey: f64 = 0;
-    //TODO: избавиться от try/catch(это не поддерживается), проерять через max
-    try {
-      higherRateKey = rates.higher(rateKey - ratePrecisionPart);
-    } catch(err){
-      const a = err;
-    }
+    const lowerThan = rateKey + ratePrecisionPart;
+    const lowerRateKey:f64 = lowerThan > rates.min() ? rates.lower(lowerThan) : 0; //плохо конечно на это полагаться, но в текущей реализации рейт не может быть нулем
+    
+    const higherThan = rateKey - ratePrecisionPart
+    const higherRateKey:f64 = higherThan < rates.max() ? rates.higher(higherThan) : 0; 
 
     let closestRateKey: f64 = 0;
 
+    if(!lowerRateKey && !higherRateKey){
+      throw new Error('Closest not found');
+    } 
+    
     if(lowerRateKey && higherRateKey){
       closestRateKey = Math.abs(rateKey - lowerRateKey) > Math.abs(rateKey - higherRateKey) ? higherRateKey : lowerRateKey;  
     } else{
       closestRateKey = lowerRateKey || higherRateKey;
     }
 
-    if(closestRateKey == 0){
-      throw new Error('Closest not found');
-    }
     
     const closestratesNode = rates.getSome(closestRateKey);
     const closestRateCard = cards.getSome(closestratesNode);
@@ -229,11 +161,11 @@ export class Card {
     const cardA = cards.getSome(decision < 0? b: a)
     const cardB = cards.getSome(decision < 0? a: b)
 
-    const Ea: f32 = 1 / (1 + Mathf.pow(10, ( cardB.rate - cardA.rate ) / 400))
-    const Eb: f32 = 1 / (1 + Mathf.pow(10, ( cardA.rate - cardB.rate ) / 400))
+    const Ea: f64 = 1 / (1 + Math.pow(10, ( cardB.rate - cardA.rate ) / 400))
+    const Eb: f64 = 1 / (1 + Math.pow(10, ( cardA.rate - cardB.rate ) / 400))
 
-    const Sa: f32 = decision === 0? 0.5: 1
-    const Sb: f32 = decision === 0? 0.5: 0
+    const Sa: f64 = decision === 0? 0.5: 1
+    const Sb: f64 = decision === 0? 0.5: 0
 
     const newRateA = cardA.rate + 40 * (Sa - Ea)
     const newRateB = cardB.rate + 40 * (Sb - Eb)
@@ -272,9 +204,9 @@ export class Card {
   }
 
   static setVote(card:u32, initialRate:f64):void{
-    const vote = new Vote(context.sender, initialRate);
-    VoteGroup.addVote(card, vote);
-    
+
+    // const vote = new Vote(context.sender, initialRate);
+    // VoteGroup.addVote(card, vote);
   }
 
 
