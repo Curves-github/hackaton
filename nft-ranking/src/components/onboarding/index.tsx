@@ -1,7 +1,9 @@
+import { Box, Button, Typography } from "@mui/material";
 import { observer } from "mobx-react-lite";
 import { FunctionComponent } from "react";
 import { Navigate } from "react-router-dom";
 import { useMainStore } from "../../store";
+import onboarding1 from '../../assets/onboarding/1.png';
 
 const SLIDES = [
   {
@@ -18,10 +20,11 @@ const Onboarding:FunctionComponent = observer(() => {
   }
 
   return (
-    <>
-      <div>Onboarding</div>
-      <button onClick={()=>mainStore.ui.completeOnboarding()}>complete</button>
-    </>
+    <Box sx={{p:'70px 25px 50px', minHeight:'100vh'}}>
+      <Typography variant="h3" align="center">Onboarding</Typography>
+      <Box sx={{display: 'flex', justifyContent: 'center'}}><img src={onboarding1} alt="" /></Box>
+      <Button onClick={()=>mainStore.ui.completeOnboarding()} color="primary" variant="contained" fullWidth>Okey, I got it</Button>
+    </Box>
   )
 })
 

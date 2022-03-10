@@ -1,5 +1,7 @@
 
 import { createTheme, experimental_sx as sx } from "@mui/material/styles";
+import InnerRegular from '../assets/fonts/Inter-Regular.woff2';
+import InnerBold from '../assets/fonts/Inter-Bold.woff2';
 
 const defaultTheme = createTheme({
   palette: {
@@ -12,13 +14,13 @@ const defaultTheme = createTheme({
       main: "#303440"
     },
     background: {
-      default: "#21242B",
+      default: "#191A1D",
       paper: "#1A1B20"
     }
   },
   typography: (palette) => ({
     fontSize: 13,
-    fontFamily: [ 'Montserrat', 'sans-serif' ].join(", "),
+    fontFamily: [ 'Inter', 'sans-serif' ].join(", "),
     button: {
       textTransform: "none",
       fontWeight: 600
@@ -59,7 +61,25 @@ const defaultTheme = createTheme({
           }
         })
       }
-    }
+    },
+    MuiCssBaseline: {
+      styleOverrides: `
+        @font-face {
+          font-family: 'Inner';
+          font-style: normal;
+          font-display: swap;
+          font-weight: 400;
+          src: local('Inner'), local('Inner-Regular'), url(${InnerRegular}) format('woff2');
+        };
+        @font-face {
+          font-family: 'Inner';
+          font-style: normal;
+          font-display: swap;
+          font-weight: 700;
+          src: local('Inner'), local('Inner-Bold'), url(${InnerBold}) format('woff2');
+        };
+      `,
+    },
   }
 });
 
