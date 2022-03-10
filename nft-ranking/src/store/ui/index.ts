@@ -6,6 +6,7 @@ class UiStore {
   dialogOpened = false
   loading = false
   data: any[] | null = null
+  onboardingCompleted = false
 
   constructor(mainStore: MainStore) {
     this.mainStore = mainStore
@@ -13,9 +14,11 @@ class UiStore {
       dialogOpened: observable,
       loading: observable,
       data: observable,
+      onboardingCompleted: observable,
       setDialogOpened: action,
-      setData: action
+      setData: action,
     })
+    this.onboardingCompleted = !!localStorage.getItem("onboarding-completed");
   }
 
   setDialogOpened(value: boolean) {
@@ -35,6 +38,10 @@ class UiStore {
     this.data = data
   }
 
+  completeOnboarding(){
+    this.onboardingCompleted = true;
+    localStorage.setItem('onboarding-completed', 'true');
+  }
 }
 
 export default UiStore

@@ -3,14 +3,15 @@ import { connect, keyStores, WalletConnection, Contract } from 'near-api-js';
 import getConfig from '../../utils/contract-config';
 
 class ContractStore {
-
   walletConnection!: WalletConnection
   contract!: any
   currentUser: { accountId: string, balance: string } | null = null
   nearConfig = getConfig(process.env.NODE_ENV || 'testnet');
+  isInit = false;
 
   constructor() {
     makeObservable(this, {
+      isInit: observable,
       currentUser: observable,
       setCurrentUser: action
     })
@@ -43,6 +44,8 @@ class ContractStore {
       // Change methods can modify the state, but you don't receive the returned value when called
       changeMethods: ["getTwoCards", "vote" ]
     });
+
+    this.isInit = true;
   }
 
   signIn() {
