@@ -4,10 +4,10 @@ import UiStore from "./ui"
 
 class MainStore {
 
-  champions = new UiStore(this)
-  winners = new UiStore(this)
   contract = new ContractStore()
   cards = new CardsStore(this.contract)
+  champions = new UiStore(this)
+  winners = new UiStore(this)
   ui = new UiStore(this)
 
   constructor() {
