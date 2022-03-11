@@ -29,13 +29,6 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>  
-    // <Box height="100vh" display="flex" px={3} py={3} boxSizing="border-box" >
-    //   <Box flexGrow={1} display="flex" flexDirection="column">
-    //     <Header/>
-    //     <Viewport/>
-    //   </Box>
-    //   <ChampionsTable/>
-    // </Box>
   );
 }
 

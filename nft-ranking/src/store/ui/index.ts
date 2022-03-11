@@ -1,4 +1,4 @@
-import { action, makeAutoObservable, observable } from "mobx"
+import { action, IReactionDisposer, makeAutoObservable, observable, reaction } from "mobx"
 import MainStore from "../store"
 
 class UiStore {
@@ -7,6 +7,7 @@ class UiStore {
   loading = false
   data: any[] | null = null
   onboardingCompleted = false
+  userStateReaction: IReactionDisposer;
 
   constructor(mainStore: MainStore) {
     this.mainStore = mainStore
@@ -19,6 +20,12 @@ class UiStore {
       setData: action,
     })
     this.onboardingCompleted = !!localStorage.getItem("onboarding-completed");
+    this.userStateReaction = reaction(()=>mainStore.contract.currentUser, (user)=>{
+      console.log("UPDATE")
+      if(user){
+        this.completeOnboarding();
+      }
+    })
   }
 
   setDialogOpened(value: boolean) {
@@ -41,6 +48,10 @@ class UiStore {
   completeOnboarding(){
     this.onboardingCompleted = true;
     localStorage.setItem('onboarding-completed', 'true');
+  }
+
+  dispose() {
+    this.userStateReaction()
   }
 }
 

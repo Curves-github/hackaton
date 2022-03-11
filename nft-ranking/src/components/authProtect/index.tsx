@@ -7,10 +7,6 @@ const AuthProtect:FunctionComponent = observer(() => {
   const mainStore = useMainStore()
   const location = useLocation();
   
-  if(!mainStore.contract.isInit){
-    return <p>loading...</p>
-  }
-
   if(!mainStore.ui.onboardingCompleted){
     return <Navigate to="/onboarding" replace state={{from:location}} />
   }

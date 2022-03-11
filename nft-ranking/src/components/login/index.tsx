@@ -8,9 +8,6 @@ const Login:FunctionComponent = observer(() => {
   const location = useLocation();
   const from = (location.state as any)?.from?.pathname || "/";
 
-  if(!mainStore.contract.isInit){
-    return <p>loading...</p>
-  }
   if(!!mainStore.contract.currentUser){
     return <Navigate to={from} replace />
   }

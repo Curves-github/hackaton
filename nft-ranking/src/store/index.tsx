@@ -4,12 +4,25 @@ import MainStore from './store'
 const StoreContext = createContext({} as MainStore)
 
 export const MainStoreProvider: FunctionComponent<{}> = ({children}) => {
-
+  const [ready, setReady] = useState(false);
   const [ store ] = useState(() => new MainStore())
   useEffect(() => {
-    store.init()
-    return () => store.dispose()
+    let cancelled = false;
+    (async ()=>{
+      await store.init();
+      if(!cancelled){
+        setReady(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      store.dispose()
+    }
   }, [ store ])
+
+  if(!ready){
+    return <></>;
+  }
 
   return (
     <StoreContext.Provider value={store}>

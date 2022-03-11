@@ -4,20 +4,16 @@ import UiStore from "./ui"
 
 class MainStore {
 
-  ui = new UiStore(this)
   contract = new ContractStore()
   cards = new CardsStore(this.contract)
+  ui = new UiStore(this)
 
   async init() {
     await this.contract.initContract()
-    if (!this.contract.currentUser){
-      return
-    }
-    await this.cards.init()
   }
 
   dispose() {
-
+    this.ui?.dispose();
   }
 
 }
