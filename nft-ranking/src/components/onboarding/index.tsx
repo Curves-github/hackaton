@@ -4,14 +4,11 @@ import { FunctionComponent, useMemo,useState, useEffect, Fragment, useRef, useCa
 import { Navigate } from "react-router-dom";
 import { useMainStore } from "../../store";
 import styles from './styles.module.scss';
-import { BoxProps } from "@mui/system";
 import {SLIDES} from './data';
 import cs from 'classnames';
 import {ReactComponent as LogoIcon} from '../../assets/logo.svg';
+import ContentWrapper from "src/components/content-wrapper";
 
-const ContentWrapper:FunctionComponent<BoxProps> = ({sx,...rest})=>{
-  return <Box {...rest} sx={{...sx, paddingLeft:'25px', paddingRight:'25px'}}  />
-};
 
 const SWITCH_TIME = 5000;
 

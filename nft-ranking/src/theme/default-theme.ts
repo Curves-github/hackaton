@@ -8,7 +8,7 @@ const defaultTheme = createTheme({
     mode: "dark",
     primary: {
       main: "#99F876",
-      contrastText: "white"
+      contrastText: "#000"
     },
     secondary: {
       main: "#303440"
