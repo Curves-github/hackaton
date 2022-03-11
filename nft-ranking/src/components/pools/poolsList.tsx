@@ -1,6 +1,6 @@
 import { FC } from 'react'
 import PoolItem from './poolItem';
-import {Pool} from './data';
+import {Pool} from '../../data/pools';
 import { Box } from '@mui/material';
 
 type ComponentProps = {

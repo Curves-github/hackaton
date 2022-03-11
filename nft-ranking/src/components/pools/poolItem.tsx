@@ -1,6 +1,6 @@
 import { Avatar, Box, Typography } from '@mui/material';
 import { FC } from 'react'
-import {Pool} from './data';
+import {Pool} from '../../data/pools';
 import { format } from 'date-fns'
 import { useNavigate } from 'react-router-dom';
 

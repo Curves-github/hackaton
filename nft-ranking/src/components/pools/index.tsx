@@ -4,7 +4,8 @@ import ContentWrapper from 'src/components/content-wrapper';
 import PoolsFilters from 'src/components/pools/poolsFilters';
 import PoolsList from 'src/components/pools/poolsList';
 import Header from './header';
-import {FILTERS, POOLS} from './data';
+import {FILTERS} from './data';
+import {POOLS} from '../../data/pools';
 
 
 const Pools:FC = () => {
