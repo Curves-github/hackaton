@@ -9,8 +9,8 @@ import Pools from './components/pools';
 import Pool from './components/pool';
 import VoteProcess from './components/vote-process';
 import MainLayout from "./components/mainLayout";
-import HorizontalOnlyProtect from "./components/horizontal-only-protect";
 import Login from "./components/login";
+import Profile from "./components/profile";
 
 function App() {
   return (
@@ -21,10 +21,9 @@ function App() {
         <Route path="/" element={<AuthProtect />}>
           <Route element={<MainLayout />}>
             <Route index element={<Pools />} />
-            <Route path="/pool/:pool" element={<Pool />} />
-            <Route path="/pool/:pool/vote-process" element={<HorizontalOnlyProtect />}>
-              <Route element={<VoteProcess />} />
-            </Route>
+            <Route path="pool/:pool" element={<Pool />} />
+            <Route path="pool/:pool/vote-process" element={<VoteProcess />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
         </Route>
       </Routes>

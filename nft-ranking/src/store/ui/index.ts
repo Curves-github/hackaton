@@ -20,8 +20,7 @@ class UiStore {
       setData: action,
     })
     this.onboardingCompleted = !!localStorage.getItem("onboarding-completed");
-    this.userStateReaction = reaction(()=>mainStore.contract.currentUser, (user)=>{
-      console.log("UPDATE")
+    this.userStateReaction = reaction(()=>mainStore.contract.currentUser, (user)=>{ 
       if(user){
         this.completeOnboarding();
       }
