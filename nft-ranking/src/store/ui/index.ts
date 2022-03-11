@@ -1,4 +1,4 @@
-import { action, makeAutoObservable, observable } from "mobx"
+import { action, makeAutoObservable, makeObservable, observable } from "mobx"
 import MainStore from "../store"
 
 class UiStore {
@@ -9,7 +9,7 @@ class UiStore {
 
   constructor(mainStore: MainStore) {
     this.mainStore = mainStore
-    makeAutoObservable(this, {
+    makeObservable(this, {
       dialogOpened: observable,
       loading: observable,
       data: observable,
@@ -27,7 +27,6 @@ class UiStore {
 
   async requestData() {
     const data = await this.mainStore.contract.contract.getAll()
-    console.log(data)
     this.setData(data.sort((a: any, b: any) => b.rate - a.rate))
   }
 

@@ -1,5 +1,6 @@
-import { clearAll, create, getAll, getTwoCards, vote } from "../index";
+import { clearAll, create, getAll, getTwoCards, getWinners, vote } from "../index";
 import { Card, cards, votes, Vote } from "../model";
+import { history, User, users } from "../model-history";
 
 describe('contract methods', () => {
 
@@ -20,7 +21,7 @@ describe('contract methods', () => {
     const a = Card.insert("id0", "https://curves.digital/");
     const b = Card.insert("id1", "https://curves.digital/");
     
-    expect(getTwoCards()).toStrictEqual(new Vote(a, b, Card.currentTimestamp()))
+    expect(getTwoCards()).toStrictEqual(new Vote(a, b))
   });
 
   it('vote', () => {
@@ -30,12 +31,24 @@ describe('contract methods', () => {
 
     const rivals = getTwoCards()
     //expect(Card.getVoteStamp(cards.cardA.id, cards.cardB.id, cards.timestamp)).toStrictEqual([0], "VoteStamp created")
-    expect(Card.checkVoteStamp(rivals.cardA.id, rivals.cardB.id, rivals.timestamp)).toBeTruthy("VoteStamp has")
 
-    const result = vote(rivals.cardA.id, rivals.cardB.id, 1, rivals.timestamp)
+    const result = vote(rivals.cardA.id, rivals.cardB.id, 1)
     expect(result).toBeTruthy("Vote success")
 
     expect(cards.getSome(a.id).rate).toBeGreaterThan(cards.getSome(b.id).rate, "rate A must be greater then rate B")
+
+    // Also we must check votes history
+    const user = users.values(0, 1)[0]
+    expect(user.participationCount).toBe(1)
+    expect(User.getHistory(user, a)).toBe(1)
+    expect(User.getHistory(user, b)).toBe(0)
+    
+    expect(getWinners().length).toBe(1)
+
+    vote(rivals.cardA.id, rivals.cardB.id, -1)
+    log(getWinners())
+    expect(getWinners()[0].normalizeContribution).toBeLessThanOrEqual(1)
+
   });
 
   it('clearAll', () => {

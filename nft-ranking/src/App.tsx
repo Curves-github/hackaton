@@ -3,6 +3,7 @@ import ChampionsTable from './components/champions-table';
 import Header from './components/header';
 
 import Viewport from './components/viewport';
+import WinnersTable from './components/winner-table';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Viewport/>
       </Box>
       <ChampionsTable/>
+      <WinnersTable/>
     </Box>
   );
 }
