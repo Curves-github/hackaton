@@ -11,7 +11,7 @@ const defaultTheme = createTheme({
       contrastText: "#000"
     },
     secondary: {
-      main: "#303440"
+      main: "#464A4D"
     },
     background: {
       default: "#191A1D",
@@ -27,7 +27,7 @@ const defaultTheme = createTheme({
     },
     allVariants: {
       color: palette.text.primary
-    }
+    },
   }),
   shape: {
     borderRadius: 12
@@ -80,6 +80,57 @@ const defaultTheme = createTheme({
         };
       `,
     },
+    MuiTypography:{
+      variants:[
+        {
+          props: {variant: 'h1'},
+          style: {
+            fontWeight: 'bold'
+          }
+        },
+        {
+          props: {variant: 'h2'},
+          style: {
+            fontWeight: 'bold'
+          }
+        },
+        {
+          props: {variant: 'h3'},
+          style: {
+            fontWeight: 'bold'
+          }
+        },
+        {
+          props: {variant: 'h4'},
+          style: {
+            fontWeight: 'bold'
+          }
+        },
+        {
+          props: {variant: 'h5'},
+          style: {
+            fontWeight: 'bold'
+          }
+        },
+        {
+          props: {variant: 'h6'},
+          style: {
+            fontWeight: 'bold'
+          }
+        }
+      ]
+    },
+    MuiButton: {
+      variants:[
+        {
+          props: {variant: 'contained', size:'large'},
+          style:{
+            borderRadius: '48px',
+            height:"48px"
+          }
+        }
+      ]
+    }
   }
 });
 

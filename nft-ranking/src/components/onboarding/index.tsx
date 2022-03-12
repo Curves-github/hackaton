@@ -3,11 +3,10 @@ import { observer } from "mobx-react-lite";
 import { FunctionComponent, useMemo,useState, useEffect, Fragment, useRef, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { useMainStore } from "../../store";
-import styles from './styles.module.scss';
 import {SLIDES} from './data';
-import cs from 'classnames';
 import {ReactComponent as LogoIcon} from '../../assets/logo.svg';
 import ContentWrapper from "src/components/content-wrapper";
+import Pagination from "src/components/onboarding/pagination";
 
 
 const SWITCH_TIME = 5000;
@@ -54,25 +53,7 @@ const Onboarding:FunctionComponent = observer(() => {
   return (
     <>
       <Box sx={{paddingTop: `70px`, height:'100vh', display:"grid", gridTemplateRows:'auto 1fr'}}>
-        <div className={styles.pagination}>
-          {SLIDES.map((slide,index)=>{
-            return (
-              <div 
-                key={slide.id} 
-                className={styles.pagination__item} 
-                onClick={()=>setActiveIndex(index)}
-              >
-                <div 
-                  className={cs(
-                    styles.pagination__line, 
-                    index === activeIndex && styles["pagination__line--inProgress"], 
-                    index < activeIndex && styles["pagination__line--completed"]
-                  )}
-                style={{animationDuration: SWITCH_TIME + 'ms'}}></div>  
-              </div>
-            )
-          })}
-        </div>
+        <Pagination count={SLIDES.length} onClick={(i)=>setActiveIndex(i)} activeIndex={activeIndex} switchTime={SWITCH_TIME} />
         <Box sx={{mt:'20px', overflow:'hidden', display:'grid', gridTemplateRows:"auto 1fr"}} onClick={onContentClick} ref={contentRef}>
           <ContentWrapper>
             {activeIndex === 0 && (

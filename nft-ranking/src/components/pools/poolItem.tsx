@@ -26,7 +26,7 @@ const PoolItem:FC<{pool: Pool, withBg?: boolean}> = ({pool, withBg}) => {
         <Typography color="primary" sx={{fontSize:'14px', fontWeight:'bold'}}>{pool.prize}&nbsp;Ⓝ</Typography>
       </Box>
       <Box>
-        <Typography>{format(new Date(pool.endDateTime), 'MM.dd, HHaa')}</Typography>
+        <Typography>{format(new Date(pool.endDateTime), 'dd.MM, HH:mm')}</Typography>
       </Box>
     </Box>
   )

@@ -15,7 +15,7 @@ const PoolsFilters:FC<ComponentProps> = ({filters, active, onClick}) => {
         key={f.id}
         label={f.label}
         onClick={()=>onClick(f.id)}
-        color={f.id === active ? 'primary' : 'default'}
+        color={f.id === active ? 'primary' : 'secondary'}
       />)}
     </Box>
   )

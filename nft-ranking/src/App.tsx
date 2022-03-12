@@ -11,6 +11,8 @@ import VoteProcess from './components/vote-process';
 import MainLayout from "./components/mainLayout";
 import Login from "./components/login";
 import Profile from "./components/profile";
+import PoolWinners from "src/components/pool-winners";
+import PoolAbout from "src/components/pool-about";
 
 function App() {
   return (
@@ -21,7 +23,10 @@ function App() {
         <Route path="/" element={<AuthProtect />}>
           <Route element={<MainLayout />}>
             <Route index element={<Pools />} />
-            <Route path="pool/:pool" element={<Pool />} />
+            <Route path="pool/:pool" element={<Pool />}>
+              <Route index element={<PoolAbout />} />
+              <Route path="winners" element={<PoolWinners />} />
+            </Route>
             <Route path="pool/:pool/vote-process" element={<VoteProcess />} />
             <Route path="profile" element={<Profile />} />
           </Route>
