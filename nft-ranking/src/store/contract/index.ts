@@ -55,6 +55,7 @@ class ContractStore {
     this.walletConnection.signOut();
     this.setCurrentUser(null)
     window.location.replace(window.location.origin + window.location.pathname);
+    window.localStorage.removeItem("clicksLeft")
   };
 
   setCurrentUser(user: typeof this.currentUser) {
