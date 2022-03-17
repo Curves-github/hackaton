@@ -53,7 +53,7 @@ const PoolPure:FC<{pool: PoolType}> = ({pool}) => {
           </ContentWrapper>
         </Box>
       </Box>
-      <ContentWrapper sx={{pt:"32px", mb:"30px"}}>
+      <ContentWrapper sx={{pt:"3vh", mb:"2vh"}}>
         <Nav />
       </ContentWrapper>
       <Outlet context={{pool}} />

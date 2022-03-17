@@ -16,6 +16,9 @@ const defaultTheme = createTheme({
     background: {
       default: "#191A1D",
       paper: "#1A1B20"
+    },
+    info: {
+      main: "#1F2224"
     }
   },
   typography: (palette) => ({
@@ -24,6 +27,9 @@ const defaultTheme = createTheme({
     button: {
       textTransform: "none",
       fontWeight: 600
+    },
+    h3: {
+      fontSize: 32
     },
     allVariants: {
       color: palette.text.primary

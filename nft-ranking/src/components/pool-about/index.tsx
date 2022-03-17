@@ -13,8 +13,8 @@ const PoolAbout:FC = () => {
   
   
   return (
-    <ContentWrapper sx={{pb: '30px'}}>
-      <Typography align="center" variant="h4" sx={{mb:'16px'}}>{pool.name}</Typography>
+    <ContentWrapper >
+      <Typography align="center" variant="h4" sx={{mb:'2h'}}>{pool.name}</Typography>
       <Typography align="center" variant="subtitle1" sx={{mb:'30px'}}>Earn max prize: {pool.prize}&nbsp;Ⓝ</Typography>
       <Typography align="center" variant="subtitle1" sx={{fontWeight:'bold'}}>{format(new Date(pool.endDateTime), 'dd.MM, HH:mm')}</Typography>
       <Typography align="center" variant="subtitle1" sx={{mb:"30px"}}>Available until</Typography>

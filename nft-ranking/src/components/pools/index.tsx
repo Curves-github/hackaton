@@ -28,10 +28,8 @@ const Pools:FC = () => {
 
   
   return (
-    <Box pt="30px" sx={{height: '100vh', overflow:'hidden', display: 'grid', gridTemplateRows:"auto auto 1fr"}}>
-      <ContentWrapper>
-        <Header />
-      </ContentWrapper>
+    <Box sx={{height: '100vh', overflow:'hidden', display: 'grid', gridTemplateRows:"auto auto 1fr"}}>
+      <Header />
       <ContentWrapper mt="30px" sx={{display: 'grid', gridTemplateRows:"auto 1fr", gap:'20px'}}>
         <PoolsFilters active={activeFilter} onClick={onFilterClick} filters={FILTERS} />
       </ContentWrapper>

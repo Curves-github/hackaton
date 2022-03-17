@@ -1,6 +1,7 @@
 import onboarding1 from '../../assets/onboarding/1.png';
 import onboarding2 from '../../assets/onboarding/2.png';
 import onboarding3 from '../../assets/onboarding/3.png';
+import onboarding4 from '../../assets/onboarding/4.png';
 
 export const SLIDES = [
   {
@@ -15,6 +16,12 @@ export const SLIDES = [
   },
   {
     id:2,
+    text: "Login in with your NEAR wallet or create a new one.",
+    image: onboarding4,
+    wrappedImage: true
+  },
+  {
+    id:3,
     text: "Take prizes in the ranking and earn!",
     image: onboarding3,
     wrappedImage: true

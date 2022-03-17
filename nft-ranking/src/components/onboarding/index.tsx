@@ -26,9 +26,9 @@ const Onboarding:FunctionComponent = observer(() => {
     return ()=>clearTimeout(timer);
   },[activeIndex, nextSlide])
 
-  if(mainStore.ui.onboardingCompleted){
-    return <Navigate to="/" />
-  }
+  // if(mainStore.ui.onboardingCompleted){
+  //   return <Navigate to="/" />
+  // }
   
   const onComplete = ()=>{
     mainStore.contract.signIn();
@@ -52,7 +52,7 @@ const Onboarding:FunctionComponent = observer(() => {
 
   return (
     <>
-      <Box sx={{paddingTop: `70px`, height:'100vh', display:"grid", gridTemplateRows:'auto 1fr'}}>
+      <Box sx={{ pt: 3, height:'100vh', display:"grid", overflow: "hidden", gridTemplateRows:'auto 1fr'}}>
         <Pagination count={SLIDES.length} onClick={(i)=>setActiveIndex(i)} activeIndex={activeIndex} switchTime={SWITCH_TIME} />
         <Box sx={{mt:'20px', overflow:'hidden', display:'grid', gridTemplateRows:"auto 1fr"}} onClick={onContentClick} ref={contentRef}>
           <ContentWrapper>
@@ -71,9 +71,9 @@ const Onboarding:FunctionComponent = observer(() => {
         </Box>
       </Box>
       <ContentWrapper sx={{position:'absolute',bottom: '50px', display: 'grid', gridTemplateColumns:'1fr', width:'100%'}}>
-          <Button onClick={onComplete} color="primary" variant="contained" fullWidth size="large">
-            Okey, I got it
-          </Button>
+        <Button onClick={onComplete} color="primary" variant="contained" fullWidth size="large">
+          Login
+        </Button>
       </ContentWrapper>
     </>
   )

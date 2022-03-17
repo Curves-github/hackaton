@@ -2,6 +2,7 @@ import { observer } from 'mobx-react-lite';
 import {FunctionComponent} from 'react'
 import { Navigate, useLocation } from 'react-router-dom';
 import { useMainStore } from '../../store';
+import Onboarding from '../onboarding';
 
 const Login:FunctionComponent = observer(() => {
   const mainStore = useMainStore()
@@ -13,7 +14,7 @@ const Login:FunctionComponent = observer(() => {
   }
 
   return (
-    <div><button onClick={()=>mainStore.contract.signIn()}>Login with near</button></div>
+    <Onboarding/>
   )
 })
 

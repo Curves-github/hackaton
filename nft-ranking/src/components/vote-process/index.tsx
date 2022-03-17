@@ -29,7 +29,7 @@ const VoteProcess: FunctionComponent = observer(() => {
   }
 
   return (
-    <Card elevation={0} sx={{ flexGrow: 1, display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
+    <Card elevation={0} sx={{ height: "100vh", display: "flex", alignItems: "center", flexDirection: "column" }}>
       <ContentWrapper alignSelf="stretch" sx={{ py: 2, display: "flex", flexDirection: "row", alignItems: "center" }}>
         <IconButton onClick={()=>navigate('./../')} aria-label="back">
           <ArrowBackIosNewOutlined />
