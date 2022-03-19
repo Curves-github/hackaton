@@ -1,19 +1,31 @@
 // contract/assembly/model.ts
-import { math, PersistentSet, datetime, PersistentUnorderedMap, context } from "near-sdk-as";
+import { math, PersistentSet, datetime, PersistentUnorderedMap, PersistentMap, PersistentVector } from "near-sdk-as";
 import { User } from "./model-history";
 
 export const votes = new PersistentSet<u32>("votes")
-export const cards = new PersistentUnorderedMap<u32, Card>("cards");
 
+export const cardIds = new PersistentVector<u32>("card-ids")
+export const cards = new PersistentMap<u32, Card>("cards");
+export const cardsInfo = new PersistentMap<u32, CardInfo>("cardsInfo")
 
 @nearBindgen
-export class Vote {
-  cardA: Card
-  cardB: Card
+export class CardInfo {
+  id: u32
+  imgSrc: string
+  url: string
 
-  constructor(cardA: Card, cardB: Card) {
-    this.cardA = cardA
-    this.cardB = cardB
+  constructor(id: u32, imgSrc: string, url: string) {
+    this.id = id
+    this.imgSrc = imgSrc
+    this.url = url
+  }
+
+  static getAll(): CardInfo[] {
+    const arr: CardInfo[] = []
+    for (let i = 0; i < cardIds.length; i++) {
+      arr.push(cardsInfo.getSome(cardIds[i]))
+    }
+    return arr
   }
 }
 
@@ -22,37 +34,42 @@ export class Card {
   id: u32
   rate: f32
   participations: u32
-  imgSrc: string
 
-  constructor(id: string, src: string) {
+  constructor(id: string) {
     this.id = math.hash32<string>(id);
-    this.imgSrc = src
     this.rate = 100
     this.participations = 0
   }
 
-  static insert(id: string, src: string): Card {
+  static insert(id: string, imgSrc: string, url: string): CardInfo {
 
-    const card = new Card(id, src);
- 
+    const card = new Card(id);
     cards.set(card.id, card);
+    cardIds.push(card.id)
 
-    return card;
+    const cardInfo = new CardInfo(card.id, imgSrc, url)
+    cardsInfo.set(card.id, cardInfo)
+    
+    return cardInfo;
   }
 
   static getAll(): Card[] {
-    return cards.values(0, cards.length)
+    const arr: Card[] = []
+    for (let i = 0; i < cardIds.length; i++) {
+      arr.push(cards.getSome(cardIds[i]))
+    }
+    return arr
   }
 
   static getLength(): u32 {
-    return cards.length
+    return cardIds.length
   }
 
   static currentTimestamp(): u64 {
     return datetime.block_datetime().epochNanoseconds
   }
 
-  static getTwoCards(): Vote {
+  static getTwoCards(): CardInfo[] {
     const allCards = Card.getAll()
     let indexA = 0
     let minParticipations = allCards[indexA].participations
@@ -73,7 +90,7 @@ export class Card {
       }
     }
 
-    return new Vote(allCards[indexA], allCards[indexB])
+    return [ cardsInfo.getSome(allCards[indexA].id), cardsInfo.getSome(allCards[indexB].id) ]
   }
 
   static vote(a: u32, b: u32, decision: i8): bool {
@@ -105,7 +122,11 @@ export class Card {
   }
 
   static clearAll(): bool {
-    cards.clear()
+    while(cardIds.length > 0) {
+      cards.delete(cardIds[cardIds.length-1])
+      cardsInfo.delete(cardIds[cardIds.length-1])
+      cardIds.pop()
+    }
     return true
   }
 }

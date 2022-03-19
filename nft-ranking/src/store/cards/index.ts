@@ -30,7 +30,7 @@ class CardsStore {
     const cards = await this.contract.contract.getTwoCards()
     this.timestamp = cards.timestamp
     console.log(cards)
-    this.setShowed([ cards.cardA, cards.cardB ])
+    this.setShowed(cards)
     this.setClicksLeft(parseInt(window.localStorage.getItem("clicksLeft") || "") || 40)
   }
 

@@ -1,4 +1,4 @@
-const CONTRACT_NAME = process.env.REACT_APP_CONTRACT_NAME || 'dev-1646924247496-75453984846070';
+const CONTRACT_NAME = process.env.REACT_APP_CONTRACT_NAME || 'dev-1647673160311-40928099721550';
 
 function getConfig(env: string) {
   switch(env) {

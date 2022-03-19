@@ -1,5 +1,5 @@
 import { context, math, PersistentMap, PersistentUnorderedMap, PersistentVector } from "near-sdk-core"
-import { Card, cards } from "./model"
+import { Card, cardIds, cards } from "./model"
 
 export const history = new PersistentUnorderedMap<u64, u16> ("votes-history")
 export const users = new PersistentUnorderedMap<u32, User>("users")
@@ -38,8 +38,8 @@ export class User {
     return user
   }
 
-  static getHistory(user: User, card: Card): u16 {
-    const key = (<u64>user.id << 32) + card.id 
+  static getHistory(user: User, cardId: u32): u16 {
+    const key = (<u64>user.id << 32) + cardId 
     const count = history.contains(key)? history.getSome(key): 0
     return count
   }
@@ -65,12 +65,11 @@ export class User {
   static getFullHistory(): Winner[] {
     const winners: Winner[] = []
 
-    const cardKeys = cards.keys()
     const userKeys = users.keys()
     for (let i = 0; i < userKeys.length; i++) {
       const user = users.getSome(userKeys[i])
-      for (let j = 0; j < cardKeys.length; j++) {
-        const key = (<u64>userKeys[i] << 32) + cardKeys[j]
+      for (let j = 0; j < cardIds.length; j++) {
+        const key = (<u64>userKeys[i] << 32) + cardIds[j]
         if (history.contains(key)) {
           const contribution = history.getSome(key)
           winners.push({ 

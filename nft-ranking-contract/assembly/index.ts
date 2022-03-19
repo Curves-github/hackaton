@@ -1,16 +1,16 @@
 // contract/assembly/index.ts
-import { Card, Vote } from "./model";
+import { Card, CardInfo } from "./model";
 import { HistoryEvent, User, Winner } from "./model-history";
 
 // export the create method. This acts like an endpoint
 // that we'll be able to call from our web app.
-export function create(id: string, imgSrc: string): Card {
+export function create(id: string, imgSrc: string, url: string): CardInfo {
   // use the Todo class to persist the todo data
-  return Card.insert(id, imgSrc);
+  return Card.insert(id, imgSrc, url);
 }
 
 
-export function getTwoCards(): Vote {
+export function getTwoCards(): CardInfo[] {
   return Card.getTwoCards();
 }
 
@@ -18,8 +18,8 @@ export function vote(a: u32, b: u32, decision: i8): bool {
   return Card.vote(a, b, decision);
 }
 
-export function getAll(): Card[] {
-  return Card.getAll()
+export function getAll(): CardInfo[] {
+  return CardInfo.getAll()
 }
 
 export function getLength(): u32 {
