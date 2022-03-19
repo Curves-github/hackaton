@@ -9,7 +9,6 @@ export function create(id: string, imgSrc: string, url: string): CardInfo {
   return Card.insert(id, imgSrc, url);
 }
 
-
 export function getTwoCards(): CardInfo[] {
   return Card.getTwoCards();
 }
@@ -20,6 +19,10 @@ export function vote(a: u32, b: u32, decision: i8): bool {
 
 export function getAll(): CardInfo[] {
   return CardInfo.getAll()
+}
+
+export function getAllRates(): Card[] {
+  return Card.getAll()
 }
 
 export function getLength(): u32 {

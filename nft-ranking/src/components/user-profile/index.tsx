@@ -5,7 +5,6 @@ import { stringToInt } from "src/utils/string-avatar";
 const UserProfile: FC<{ username?: string, subtitle?: string }> = ({ username, subtitle }) => {
 
   const avatar = username && ("/avatars/" + (stringToInt(username, 8)+1) + ".jpg")
-  console.log(avatar)
 
   return (
     <>

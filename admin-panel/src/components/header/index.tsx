@@ -1,4 +1,4 @@
-import { AppBar, Button, IconButton, Toolbar, Typography } from '@mui/material'
+import { Box, AppBar, Button, IconButton, Toolbar, Typography } from '@mui/material'
 import { observer } from 'mobx-react-lite'
 import { useMainStore } from '../../store'
 
@@ -13,7 +13,7 @@ const Header = observer(() => {
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Admin-Panel
+          <Box component="span" color="primary.main">Nearest</Box> - Admin Panel
         </Typography>
 
         { contract.currentUser? (

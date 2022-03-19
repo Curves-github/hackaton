@@ -15,6 +15,7 @@ export class Winner {
   accountId: string
   contribution: u16
   normalizeContribution: f32 
+  clicks: u32
 }
 
 @nearBindgen
@@ -75,7 +76,8 @@ export class User {
           winners.push({ 
             accountId: user.accountId, 
             contribution,
-            normalizeContribution: <f32>contribution / <f32>user.participationCount
+            normalizeContribution: <f32>contribution / <f32>user.participationCount,
+            clicks: user.participationCount
           })
         }
       }
@@ -109,7 +111,8 @@ export class User {
         winners.push({ 
           accountId: user.accountId, 
           contribution,
-          normalizeContribution: <f32>contribution / <f32>user.participationCount
+          normalizeContribution: <f32>contribution / <f32>user.participationCount,
+          clicks: user.participationCount
         })
       }
     }
