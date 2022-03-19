@@ -41,7 +41,7 @@ export const POOLS:Pool[] = [
     preview: poolPreview,
     link: 'https://paras.id/',
     owner: owners[0],
-    description: "Nostrud eiusmod officia incididunt aute. Incididunt ex aliqua irure cillum sunt duis proident velit. Anim et deserunt consectetur eu. Eiusmod nulla duis nulla nulla ipsum amet.",
+    description: "If a monument is built brick by brick, a masterpiece can be designed pixel by pixel. Volume or not, we welcome you as a part of our pixel.",
     name: 'Pixel art of the day',
     prize: 5,
     endDateTime: addHours(new Date(), 20).toISOString(),
