@@ -1,5 +1,5 @@
 import {FC, useMemo, useState} from 'react'
-import { Box } from '@mui/material'
+import { Box, Card, Paper } from '@mui/material'
 import ContentWrapper from 'src/components/content-wrapper';
 import PoolsFilters from 'src/components/pools/poolsFilters';
 import PoolsList from 'src/components/pools/poolsList';
@@ -33,9 +33,9 @@ const Pools:FC = () => {
       <ContentWrapper mt="30px" sx={{display: 'grid', gridTemplateRows:"auto 1fr", gap:'20px'}}>
         <PoolsFilters active={activeFilter} onClick={onFilterClick} filters={FILTERS} />
       </ContentWrapper>
-      <ContentWrapper sx={{overflow:'auto', pb: '30px'}}>
+      <Card elevation={0} sx={{ overflow:'auto', pb: '30px'}}>
         <PoolsList pools={sortedPools} />
-      </ContentWrapper>
+      </Card>
     </Box>
   )
 }

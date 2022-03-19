@@ -3,6 +3,22 @@ import { createTheme, experimental_sx as sx } from "@mui/material/styles";
 import InnerRegular from '../assets/fonts/Inter-Regular.woff2';
 import InnerBold from '../assets/fonts/Inter-Bold.woff2';
 
+const ScrollbarStyle = {
+  "::-webkit-scrollbar": {
+    width: 5
+  },
+  "::-webkit-scrollbar-track": {
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    borderRadius: 3,
+    marginTop: 8,
+    marginBottom: 8
+  },
+  "::-webkit-scrollbar-thumb": {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 3
+  },
+}
+
 const defaultTheme = createTheme({
   palette: {
     mode: "dark",
@@ -39,6 +55,13 @@ const defaultTheme = createTheme({
     borderRadius: 12
   },
   components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          ...ScrollbarStyle
+        }
+      }
+    },
     MuiTabs: {
       styleOverrides: {
         root: sx({

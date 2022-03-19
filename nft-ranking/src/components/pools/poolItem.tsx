@@ -1,4 +1,4 @@
-import { Avatar, Box, Typography } from '@mui/material';
+import { Avatar, Box, ListItemButton, Typography } from '@mui/material';
 import { FC } from 'react'
 import {Pool} from '../../data/pools';
 import { format } from 'date-fns'
@@ -7,8 +7,9 @@ import { useNavigate } from 'react-router-dom';
 const PoolItem:FC<{pool: Pool, withBg?: boolean}> = ({pool, withBg}) => {
   const navigate = useNavigate();
   return (
-    <Box 
+    <ListItemButton 
       onClick={()=>navigate(`pool/${pool.id}`)} 
+      disabled={pool.disabled}
       sx={{
         display: 'grid', 
         gridTemplateColumns:'auto 1fr auto', 
@@ -28,7 +29,7 @@ const PoolItem:FC<{pool: Pool, withBg?: boolean}> = ({pool, withBg}) => {
       <Box>
         <Typography>{format(new Date(pool.endDateTime), 'dd.MM, HH:mm')}</Typography>
       </Box>
-    </Box>
+    </ListItemButton>
   )
 }
 
