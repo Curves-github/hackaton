@@ -20,7 +20,7 @@ async function init() {
     const obj = { id: file.id.toString(), imgSrc: `${file.id}${ext}` }
 
     const nearProcess = execFile("C:/Users/fox/AppData/Local/Yarn/bin/near.cmd",
-      [ "call", "dev-1645975005400-20414681997527", "create", `'${JSON.stringify(obj)}'`, "--accountId", "den59k.testnet" ],
+      [ "call", "dev-1647520868276-75703540319913", "create", `'${JSON.stringify(obj)}'`, "--accountId", "den59k.testnet" ],
       (error, stdout, stderr) => {
         if (error) {
           throw error;

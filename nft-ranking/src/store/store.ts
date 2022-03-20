@@ -4,20 +4,26 @@ import UiStore from "./ui"
 
 class MainStore {
 
-  ui = new UiStore(this)
   contract = new ContractStore()
   cards = new CardsStore(this.contract)
+  champions = new UiStore(this)
+  winners = new UiStore(this)
+  ui = new UiStore(this)
+
+  constructor() {
+    this.winners.requestData = async () => {
+      const data = await this.contract.contract.getWinners()
+      console.log(data)
+      this.winners.setData(data.sort((a: any, b: any) => b.contribution - a.contribution))
+    }
+  }
 
   async init() {
     await this.contract.initContract()
-    if (!this.contract.currentUser){
-      return
-    }
-    await this.cards.init()
   }
 
   dispose() {
-
+    this.ui?.dispose();
   }
 
 }

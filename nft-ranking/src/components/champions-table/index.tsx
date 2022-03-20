@@ -15,13 +15,13 @@ const ChampionsTable: FunctionComponent = observer(() => {
 
   return (
     <Dialog 
-      open={mainStore.ui.dialogOpened} 
+      open={mainStore.champions.dialogOpened} 
       TransitionComponent={Transition} 
-      onClose={() => mainStore.ui.setDialogOpened(false)}
+      onClose={() => mainStore.champions.setDialogOpened(false)}
     >
       <DialogTitle>Наши фавориты</DialogTitle>
-      <DialogContent>
-        {mainStore.ui.data && mainStore.ui.data.map(card => (
+      <DialogContent sx={{ overflowX: "hidden" }}>
+        {mainStore.champions.data && mainStore.champions.data.map(card => (
           <Box width={500} mb={1} display="flex" alignItems="center" key={card.id}>
             <Typography fontWeight={600} sx={{ width: 120 }}>{card.id}</Typography>
             <Typography fontSize={14}>{Math.floor(card.rate)}</Typography>

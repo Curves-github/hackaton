@@ -1,4 +1,4 @@
-import { action, makeAutoObservable, observable } from "mobx"
+import { action, IReactionDisposer, makeObservable, observable, reaction } from "mobx"
 import MainStore from "../store"
 
 class UiStore {
@@ -6,15 +6,24 @@ class UiStore {
   dialogOpened = false
   loading = false
   data: any[] | null = null
+  onboardingCompleted = false
+  userStateReaction: IReactionDisposer;
 
   constructor(mainStore: MainStore) {
     this.mainStore = mainStore
-    makeAutoObservable(this, {
+    makeObservable(this, {
       dialogOpened: observable,
       loading: observable,
       data: observable,
+      onboardingCompleted: observable,
       setDialogOpened: action,
-      setData: action
+      setData: action,
+    })
+    this.onboardingCompleted = !!localStorage.getItem("onboarding-completed");
+    this.userStateReaction = reaction(()=>mainStore.contract.currentUser, (user)=>{ 
+      if(user){
+        this.completeOnboarding();
+      }
     })
   }
 
@@ -27,7 +36,6 @@ class UiStore {
 
   async requestData() {
     const data = await this.mainStore.contract.contract.getAll()
-    console.log(data)
     this.setData(data.sort((a: any, b: any) => b.rate - a.rate))
   }
 
@@ -35,6 +43,14 @@ class UiStore {
     this.data = data
   }
 
+  completeOnboarding(){
+    this.onboardingCompleted = true;
+    localStorage.setItem('onboarding-completed', 'true');
+  }
+
+  dispose() {
+    this.userStateReaction()
+  }
 }
 
 export default UiStore

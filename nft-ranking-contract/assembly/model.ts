@@ -1,19 +1,31 @@
 // contract/assembly/model.ts
-import { math, PersistentSet, datetime, PersistentUnorderedMap } from "near-sdk-as";
+import { math, PersistentSet, datetime, PersistentUnorderedMap, PersistentMap, PersistentVector } from "near-sdk-as";
+import { User } from "./model-history";
 
 export const votes = new PersistentSet<u32>("votes")
-export const cards = new PersistentUnorderedMap<u32, Card>("cards");
 
+export const cardIds = new PersistentVector<u32>("card-ids")
+export const cards = new PersistentMap<u32, Card>("cards");
+export const cardsInfo = new PersistentMap<u32, CardInfo>("cardsInfo")
 
 @nearBindgen
-export class Vote {
-  cardA: Card
-  cardB: Card
-  timestamp: u64
-  constructor(cardA: Card, cardB: Card, timestamp: u64) {
-    this.cardA = cardA
-    this.cardB = cardB
-    this.timestamp = timestamp
+export class CardInfo {
+  id: u32
+  imgSrc: string
+  url: string
+
+  constructor(id: u32, imgSrc: string, url: string) {
+    this.id = id
+    this.imgSrc = imgSrc
+    this.url = url
+  }
+
+  static getAll(): CardInfo[] {
+    const arr: CardInfo[] = []
+    for (let i = 0; i < cardIds.length; i++) {
+      arr.push(cardsInfo.getSome(cardIds[i]))
+    }
+    return arr
   }
 }
 
@@ -22,52 +34,42 @@ export class Card {
   id: u32
   rate: f32
   participations: u32
-  imgSrc: string
 
-  constructor(id: string, src: string) {
+  constructor(id: string) {
     this.id = math.hash32<string>(id);
-    this.imgSrc = src
     this.rate = 100
     this.participations = 0
   }
 
-  static insert(id: string, src: string): Card {
+  static insert(id: string, imgSrc: string, url: string): CardInfo {
 
-    const todo = new Card(id, src);
- 
-    cards.set(todo.id, todo);
+    const card = new Card(id);
+    cards.set(card.id, card);
+    cardIds.push(card.id)
 
-    return todo;
+    const cardInfo = new CardInfo(card.id, imgSrc, url)
+    cardsInfo.set(card.id, cardInfo)
+    
+    return cardInfo;
   }
 
   static getAll(): Card[] {
-    return cards.values(<u16>Mathf.max(<f32>cards.length-50, 0), cards.length)
+    const arr: Card[] = []
+    for (let i = 0; i < cardIds.length; i++) {
+      arr.push(cards.getSome(cardIds[i]))
+    }
+    return arr
   }
 
   static getLength(): u32 {
-    return cards.length
+    return cardIds.length
   }
 
   static currentTimestamp(): u64 {
     return datetime.block_datetime().epochNanoseconds
   }
 
-  static getVoteStamp(a: u32, b: u32, timestamp: u64): u32 {
-    return math.hash32(a ^ b ^ timestamp)
-  }
-
-  static createVoteStamp(a: u32, b: u32): u64 {
-    const timestamp = Card.currentTimestamp()
-    votes.add(Card.getVoteStamp(a, b, timestamp))
-    return timestamp
-  }
-
-  static checkVoteStamp(a: u32, b: u32, timestamp: u64): bool {
-    const voteId = Card.getVoteStamp(a, b, timestamp)
-    return votes.has(voteId)
-  }
-
-  static getTwoCards(): Vote {
+  static getTwoCards(): CardInfo[] {
     const allCards = Card.getAll()
     let indexA = 0
     let minParticipations = allCards[indexA].participations
@@ -82,21 +84,16 @@ export class Card {
     let closestRate: f32 = 9999
     for (let i = 0; i < allCards.length; i++) {
       if (i === indexA) continue
-      if (Mathf.abs(allCards[i].rate - allCards[indexA].rate) < closestRate) {
-        closestRate = Mathf.abs(allCards[i].rate - allCards[indexA].rate)
+      if (abs(allCards[i].rate - allCards[indexA].rate) < closestRate) {
+        closestRate = abs(allCards[i].rate - allCards[indexA].rate)
         indexB = i
       }
     }
 
-    const time = Card.createVoteStamp(allCards[indexA].id, allCards[indexB].id)
-    
-    return new Vote(allCards[indexA], allCards[indexB], time)
+    return [ cardsInfo.getSome(allCards[indexA].id), cardsInfo.getSome(allCards[indexB].id) ]
   }
 
-  static vote(a: u32, b: u32, decision: i8, timestamp: u64): bool {
-    if (!Card.checkVoteStamp(a, b, timestamp)) {
-      return false
-    }
+  static vote(a: u32, b: u32, decision: i8): bool {
 
     const cardA = cards.getSome(decision < 0? b: a)
     const cardB = cards.getSome(decision < 0? a: b)
@@ -115,12 +112,21 @@ export class Card {
 
     cards.set(decision < 0? b: a, cardA)
     cards.set(decision < 0? a: b, cardB)
+    
+    const user = User.current()
+    if (decision !== 0) {
+      User.voteCard(user, cardA)
+    }
 
     return true
   }
 
   static clearAll(): bool {
-    cards.clear()
+    while(cardIds.length > 0) {
+      cards.delete(cardIds[cardIds.length-1])
+      cardsInfo.delete(cardIds[cardIds.length-1])
+      cardIds.pop()
+    }
     return true
   }
 }

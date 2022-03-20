@@ -1,4 +1,4 @@
-import { GlobalStyles, ThemeProvider } from '@mui/material';
+import { CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
@@ -13,6 +13,7 @@ ReactDOM.render(
   <React.StrictMode>
     <MainStoreProvider>
       <ThemeProvider theme={defaultTheme}>
+        <CssBaseline />
         <GlobalStyles styles={styles}/>
         <App />
       </ThemeProvider>

@@ -1,36 +1,67 @@
 
 import { createTheme, experimental_sx as sx } from "@mui/material/styles";
+import InnerRegular from '../assets/fonts/Inter-Regular.woff2';
+import InnerBold from '../assets/fonts/Inter-Bold.woff2';
+
+const ScrollbarStyle = {
+  "::-webkit-scrollbar": {
+    width: 5
+  },
+  "::-webkit-scrollbar-track": {
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    borderRadius: 3,
+    marginTop: 8,
+    marginBottom: 8
+  },
+  "::-webkit-scrollbar-thumb": {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 3
+  },
+}
 
 const defaultTheme = createTheme({
   palette: {
     mode: "dark",
     primary: {
-      main: "#10B664",
-      contrastText: "white"
+      main: "#99F876",
+      contrastText: "#000"
     },
     secondary: {
-      main: "#303440"
+      main: "#464A4D"
     },
     background: {
-      default: "#21242B",
+      default: "#191A1D",
       paper: "#1A1B20"
+    },
+    info: {
+      main: "#1F2224"
     }
   },
   typography: (palette) => ({
     fontSize: 13,
-    fontFamily: [ 'Montserrat', 'sans-serif' ].join(", "),
+    fontFamily: [ 'Inter', 'sans-serif' ].join(", "),
     button: {
       textTransform: "none",
       fontWeight: 600
     },
+    h3: {
+      fontSize: 32
+    },
     allVariants: {
       color: palette.text.primary
-    }
+    },
   }),
   shape: {
     borderRadius: 12
   },
   components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          ...ScrollbarStyle
+        }
+      }
+    },
     MuiTabs: {
       styleOverrides: {
         root: sx({
@@ -59,6 +90,75 @@ const defaultTheme = createTheme({
           }
         })
       }
+    },
+    MuiCssBaseline: {
+      styleOverrides: `
+        @font-face {
+          font-family: 'Inner';
+          font-style: normal;
+          font-display: swap;
+          font-weight: 400;
+          src: local('Inner'), local('Inner-Regular'), url(${InnerRegular}) format('woff2');
+        };
+        @font-face {
+          font-family: 'Inner';
+          font-style: normal;
+          font-display: swap;
+          font-weight: 700;
+          src: local('Inner'), local('Inner-Bold'), url(${InnerBold}) format('woff2');
+        };
+      `,
+    },
+    MuiTypography:{
+      variants:[
+        {
+          props: {variant: 'h1'},
+          style: {
+            fontWeight: 'bold'
+          }
+        },
+        {
+          props: {variant: 'h2'},
+          style: {
+            fontWeight: 'bold'
+          }
+        },
+        {
+          props: {variant: 'h3'},
+          style: {
+            fontWeight: 'bold'
+          }
+        },
+        {
+          props: {variant: 'h4'},
+          style: {
+            fontWeight: 'bold'
+          }
+        },
+        {
+          props: {variant: 'h5'},
+          style: {
+            fontWeight: 'bold'
+          }
+        },
+        {
+          props: {variant: 'h6'},
+          style: {
+            fontWeight: 'bold'
+          }
+        }
+      ]
+    },
+    MuiButton: {
+      variants:[
+        {
+          props: {variant: 'contained', size:'large'},
+          style:{
+            borderRadius: '48px',
+            height:"48px"
+          }
+        }
+      ]
     }
   }
 });

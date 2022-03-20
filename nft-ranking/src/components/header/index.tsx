@@ -17,7 +17,10 @@ const Header: FunctionComponent = observer(() => {
                 Account ID: {mainStore.contract.currentUser.accountId}
               </Typography>
               <Button variant="contained" onClick={() => mainStore.contract.signOut()}>Log out</Button>
-              <Button variant="contained" sx={{ px: 4, lineHeight: 3 }} onClick={() => mainStore.ui.setDialogOpened(true)}>
+              <Button variant="contained" sx={{ px: 4, lineHeight: 3 }} onClick={() => mainStore.winners.setDialogOpened(true)}>
+                Winners Board
+              </Button>
+              <Button variant="contained" sx={{ px: 4, lineHeight: 3 }} onClick={() => mainStore.champions.setDialogOpened(true)}>
                 Champions Board
               </Button>
             </>
