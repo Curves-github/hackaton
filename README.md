@@ -2,7 +2,7 @@
 
 [Nearest.cc](http://nearest.cc/) is a first decentralized NFT rating which is also a game.
 
-[Nearest.cc](http://nearest.cc/) app offers a way to find out the actual value of NFTs based on unbiased public opinion.
+[app.nearest.cc](http://app.nearest.cc/) app offers a way to find out the actual value of NFTs based on unbiased public opinion.
 
 **Play.** You get access to several pools of NFTs from major marketplaces. The artworks are mixed into pairs—and you pick the ones that you like better (or skip the selection when you can’t make up your mind).
 
